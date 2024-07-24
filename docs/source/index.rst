@@ -25,7 +25,6 @@ Contents
    :maxdepth: 1
    :caption: Contents:
 
-   api
    hydro
    turbulence
    selfgravity
