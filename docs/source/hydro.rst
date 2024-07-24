@@ -98,6 +98,9 @@ Hydrodynamics Data Structures
    +-----------------------+------------------------------+-----------+-------------------------------+
    | ``B_{phy}``           | 8.0405e-7 [G,sqrt(g/cm)/s]   |           | 1.0 [sqrt(Msun)*km/(s*pc^1.5)]|
    +-----------------------+------------------------------+-----------+-------------------------------+
+   | ``alpha``             | 3.669e13 [cgs]               |           | 1.0 [pc^2km/sM]               |
+   +-----------------------+------------------------------+-----------+-------------------------------+
+
 
 .. _table:variables:
 .. table:: variables:
@@ -275,22 +278,13 @@ Hydrodynamics Data Structures
    
 problem setup
 p = NkT  !!! thermal energy per volume, N number density
+
+
 u = p/(gamma-1), thermal energy density, gamma adiabatic index Cp/Cv
+
+
 u = rho*kT/((gamma-1)*\mu*mH)  (energy per volume)
-K = Vu = M/rho*u = M*k*T/((gamma-1)*\mu*mH) !!! M total mass, V total volume
-U = -3/5*GravConst*M^2/(Jeans length) potential Energy of a uniform density cloud
-Virial Equilibrium => 2K = abs(U)
-Jeans length: sqrt(5.0*c_s^2/(2.0*pi*GravConst*rho))
-Jeans mass = 4.0*pi/3.0*rho*(Jean's length)^3
-The corresponding volume density rho=68.4765 [Msun/pc^3]
-Jeans length: Jlen = 0.5654 [pc]
-Jeans mass: Jmass = 51.8439 [Msun]
-critical mass-to-flux ratio: M/(\Phi_B)=sqrt(5/2)/(3*pi*sqrt(GravConst))=2.5581
-The factor sqrt(4*pi) is absorbed in the definition of Bcode
-alpha_code = pc^2km/sM = 3.669e13 cgs
-   
-Within the routines that implement the hydrodynamics, there are
-several main data structures that hold the state.
+
 Units and initial conditions used in :numref:`table:constants`.
 
 -  interface variables: these are the time-centered interface states
