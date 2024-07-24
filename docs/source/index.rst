@@ -25,11 +25,11 @@ Contents
    :maxdepth: 1
    :caption: Contents:
 
+   code_structure
    hydro
    turbulence
    selfgravity
    time_integration
-   code_structure
    parallelization
    
 Indices and tables
