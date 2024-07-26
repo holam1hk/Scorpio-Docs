@@ -12,14 +12,26 @@ Procedures ::
     make clean
 	
 - Compiler
+
 - Makefile, several flags too
+
 - libraries
 
 Different platforms
 - cluster2
+
 - gpu2/mike
+
 - scorpio
-- tianhe
+
+- paulsr
+
+- hbli-s1
+
+- tianhe2/xy
+
+
+
 
 conda init
 
@@ -97,9 +109,9 @@ Stardard case setting ``testSuiteMPI.f90``::
     periods(2) = .true.
     periods(3) = .true.
     reorder = .true.
-	call g1%setTopologyMPI(ndim, dims, periods, reorder)  ???
-	call g1%setGridID(gridID = gridID)  ???
-	call g1%setTime(fstart = 0, tend = 0.02d0, dtout = 0.01d0)  !! time interval for data output
+    call g1%setTopologyMPI(ndim, dims, periods, reorder)  ???
+    call g1%setGridID(gridID = gridID)  ???
+    call g1%setTime(fstart = 0, tend = 0.02d0, dtout = 0.01d0)  !! time interval for data output
     call g1%setMesh(nMesh, leftBdry, rightBdry, nbuf, coordType, gridID)   !!calling ``setCoordinates.f90``
     call g1%setVariable(variable) !! den,vx,vy,vz,bx,by,bz,ene !!calling ``sgPlan.f90``  !!!!!!!!!!! claim memory for variables !!!!!!!!!
     call g1%setMPIWindows()
