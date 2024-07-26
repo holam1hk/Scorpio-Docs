@@ -1,5 +1,5 @@
 """
-Lumache - Python library for cooks and food lovers.
+Scorpio - Two-fluid MHD code for astrophysics.
 """
 
 __version__ = "0.1.0"
