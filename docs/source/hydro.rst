@@ -284,7 +284,7 @@ Hydrodynamics Data Structures
    +===========================+=====================================+==================================+
    | ``sgfx````sgfy````sgfz``  | :math:`\boldsymbol{g}=-\nabla \phi` | gravitational acceleration       |
    +---------------------------+-------------------------------------+----------------------------------+
-   |                           | :math:`\rho v \dot \boldsymbol{g}`  | gravitational energy             |                       
+   |                           | :math:`\rho v \cdot \boldsymbol{g}` | gravitational energy             |                       
    +---------------------------+-------------------------------------+----------------------------------+
 
 
