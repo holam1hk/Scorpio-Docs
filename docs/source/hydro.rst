@@ -285,23 +285,16 @@ Hydrodynamics Data Structures
    +---------------------------+-------------------------------------+----------------------------------+
    | **setting**               | **int**                             | **notes**                        |
    +===========================+=====================================+==================================+
-   | ``sgfx````sgfy````sgfz``  | :math:`g=-\nabla \phi`              | gravitational acceleration       |
+   | ``sgfx`` ``sgfy`` ``sgfz``| :math:`g=-\nabla \phi`              | gravitational acceleration       |
    +---------------------------+-------------------------------------+----------------------------------+
    |                           | :math:`\rho v \cdot \boldsymbol{g}` | gravitational energy             |                       
    +---------------------------+-------------------------------------+----------------------------------+
 
-
-
-
 problem setup
 p = NkT  !!! thermal energy per volume, N number density
 
-
 u = p/(gamma-1), thermal energy density, gamma adiabatic index Cp/Cv
-
 
 u = rho*kT/((gamma-1)*\mu*mH)  (energy per volume)
 
 Units and initial conditions used in :numref:`table:constants`.
-
-
