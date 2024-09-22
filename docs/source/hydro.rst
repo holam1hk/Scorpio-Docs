@@ -125,6 +125,9 @@ Hydrodynamics Data Structures
    | ``ene``               | :math:`E`             | 8(i) 5(n) |                               |
    +-----------------------+-----------------------+-----------+-------------------------------+
 
+-  ``ene`` is only required for adiabatic EOS. 
+-  The indices of variable q(i,j,k,nvar) counts from 1-nbuf to nMesh+nbuf. The last index refers to different int in :numref:`table:variables`. 
+
 .. _table:coordType:
 .. table:: coordType:
    
@@ -300,11 +303,5 @@ u = p/(gamma-1), thermal energy density, gamma adiabatic index Cp/Cv
 u = rho*kT/((gamma-1)*\mu*mH)  (energy per volume)
 
 Units and initial conditions used in :numref:`table:constants`.
-
--  interface variables: these are the time-centered interface states
-   returned by the Riemann solver. They are used to discretize some
-   non-conservative terms in the equations. These arrays are generally
-   called ``q1``, ``q2``, and ``q3`` for the x, y, and z
-   interfaces respectively. 
 
 
