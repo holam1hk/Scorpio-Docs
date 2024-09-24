@@ -65,7 +65,7 @@ GIZMO
 
 SPH?
 
-.. Column-major order is used in Fortran!!! 
+.. warning:: Column-major order is used in Fortran!!! 
 
 Input file
 ``TestSuite.f90``
