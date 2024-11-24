@@ -31,7 +31,10 @@ Contents
    selfgravity
    time_integration
    parallelization
-   
+   AD
+   riemann
+   limiter
+
 Indices and tables
 ==================
 
