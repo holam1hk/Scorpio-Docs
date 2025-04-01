@@ -39,12 +39,9 @@ Different platforms
 
 - nas3
 
-
-
-
-
-
-
+Create a new environment
+========================
+.. note::
 conda init
 
 conda activate
@@ -66,6 +63,11 @@ conda install <package_name>
 Updating conda
 
 Update conda update --all
+
+
+
+
+
 
 Ramses (Teyssier 2002), 
 PLUTO (Mignone et al. 2007), 
