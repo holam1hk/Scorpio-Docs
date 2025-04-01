@@ -10,13 +10,15 @@ Introduction
 ============
 ``riemannSolverModule.f03`` calling ::   
 
-    subroutine solverIsoMHD3D(this, q, q1, q2, dd) !! dd is dimension
-    
-    cx cy cz are the directions of the interface, which are useful for the slope calculation. rhoL=, rhoM, rhoR are the left, middle, and right states.   
+    subroutine solverIsoMHD3D(this, q, q1, q2, dd) !! dd is dimension 
+    fluxHLLDIsoMHD1D
+
+
+    cx cy cz are the directions of the interface, which are useful for x-sweep, y-sweep, z-sweep e.g. the slope calculation. rhoL=, rhoM, rhoR are the left, middle, and right states.   
     f are the n-th variable of the conserved quantities q(i,j,k,f)
 
     ql and qr are the left and right states variables corresponding to f1, f2, f3..
-
+    Ba 1999
 .. _table:solverType:
 .. table:: solverType:
    
@@ -94,8 +96,8 @@ Introduction
    | ``g11``   | 1         | f11       | 11        |           |           |                              
    +-----------+-----------+-----------+-----------+-----------+-----------+
 
-   .. _table:coed2:
-.. table:: coed2:
+.. _table:coed3:
+.. table:: coed3:
 
    +-----------+-----------+-----------+-----------+-----------+-----------+
    | **g**     | **int**   | **f1**    | **int**   | **coef**  |           |
