@@ -5,14 +5,31 @@ Code Structure
 **************
 Getting Started
 ===============
+
+.. note:: TLDR
+
 Set up ``Makefile`` and ``.bashrc`` properly.
 
 Procedures ::
 
-    make  //Compiling the code
-    mpiexec -np 8 ./Scorpio > log &
+#. Clean the code
+.. prompt:: bash
+
     make clean
-	
+
+#. Compile the code
+.. prompt:: bash
+
+    make
+
+#. Run the code
+.. prompt:: bash
+    mpiexec -n 8 ./Scorpio
+    
+8 means 8 cores.
+
+
+
 - Compiler mpif90
 
 - Makefile, O2 O3 optimization flag
@@ -42,42 +59,47 @@ Different platforms
 Create a new environment
 ========================
 .. note::
-conda init
 
-conda activate
+.. prompt:: bash
 
-in (base) now
+    # Initialize conda
+    conda init
 
-# To create an env named `my_new_env` by clone `base`
-conda create -n my_new_env --clone base
+    # Activate conda base environment
+    conda activate
+    # You are now in (base) environment
 
-# To create a new env named `my_new_env` from scratch
-conda create -n my_new_env python=3
+    # Create new environment by cloning base
+    conda create -n my_new_env --clone base
 
-conda activate my_new_env
+    # Create new environment from scratch with Python 3
+    conda create -n my_new_env python=3
 
-https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+    # Activate the new environment
+    conda activate my_new_env
 
-conda install <package_name>
+    # Install packages
+    conda install <package_name>
 
-Updating conda
+    # Update conda and all packages
+    conda update --all
 
-Update conda update --all
-
-
-
-
+    # For more information, visit:
+    # https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
 
 
-Ramses (Teyssier 2002), 
-PLUTO (Mignone et al. 2007), 
-ENZO (Wang & Abel 2009), and 
-FLASH (Fryxell et al. 2000).
-Athena ++
-Zeus
-GIZMO 
 
-SPH?
+
+
+
+# Ramses (Teyssier 2002), 
+# PLUTO (Mignone et al. 2007), 
+# ENZO (Wang & Abel 2009), and 
+# FLASH (Fryxell et al. 2000).
+# Athena ++
+# Zeus
+# GIZMO 
+# SPH?
 
 
 .. warning:: Column-major order is used in Fortran!!! 
