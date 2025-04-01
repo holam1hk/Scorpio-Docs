@@ -13,19 +13,16 @@ Set up ``Makefile`` and ``.bashrc`` properly.
 Procedures ::
 
 #. Clean the code
-.. prompt:: bash
-
-    make clean
+   .. prompt:: bash
+      make clean
 
 #. Compile the code
-.. prompt:: bash
-
-    make
+   .. prompt:: bash
+      make
 
 #. Run the code
-.. prompt:: bash
-    mpiexec -n 8 ./Scorpio
-    
+   .. prompt:: bash
+      mpiexec -n 8 ./Scorpio  
 8 means 8 cores.
 
 
@@ -58,34 +55,36 @@ Different platforms
 
 Create a new environment
 ========================
-.. note::
+#. Initialize conda
+   .. prompt:: bash    
+      conda init
 
-.. prompt:: bash
+#. Activate conda base environment
+   .. prompt:: bash    
+      conda activate
+   # You are now in (base) environment
 
-    # Initialize conda
-    conda init
+#. Create new environment by cloning base
+   .. prompt:: bash    
+      conda create -n my_new_env --clone base
 
-    # Activate conda base environment
-    conda activate
-    # You are now in (base) environment
+#. Create new environment from scratch with Python 3
+   .. prompt:: bash    
+      conda create -n my_new_env python=3
 
-    # Create new environment by cloning base
-    conda create -n my_new_env --clone base
+#. Activate the new environment
+   .. prompt:: bash    
+      conda activate my_new_env
 
-    # Create new environment from scratch with Python 3
-    conda create -n my_new_env python=3
+#. Install packages
+   .. prompt:: bash    
+      conda install <package_name>
 
-    # Activate the new environment
-    conda activate my_new_env
+#. Update conda and all packages
+   .. prompt:: bash    
+      conda update --all
 
-    # Install packages
-    conda install <package_name>
-
-    # Update conda and all packages
-    conda update --all
-
-    # For more information, visit:
-    # https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+For more information, visit: https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
 
 
 
