@@ -5,30 +5,42 @@ Code Structure
 **************
 Getting Started
 ===============
+Set up ``Makefile`` and ``.bashrc`` properly.
+
 Procedures ::
 
     make  //Compiling the code
     mpiexec -np 8 ./Scorpio > log &
     make clean
 	
-- Compiler
+- Compiler mpif90
 
-- Makefile, several flags too
+- Makefile, O2 O3 optimization flag
 
-- libraries
+- libraries: fftw3, hdf5, mpich
 
 Different platforms
+==================
+- tianhexy
+
 - cluster2
 
-- gpu2/mike
-
-- scorpio
-
-- paulsr
+- hbli-s2
 
 - hbli-s1
 
-- tianhe2/xy
+- scorpio
+
+- gpu2/mike
+
+- paulsr
+
+- stor2
+
+- nas3
+
+
+
 
 
 
