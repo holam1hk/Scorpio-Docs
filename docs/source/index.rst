@@ -29,9 +29,9 @@ Contents
    hydro
    turbulence
    selfgravity
+   AD
    time_integration
    parallelization
-   AD
    riemann
    limiter
 
