@@ -7,29 +7,25 @@ Hydrodynamics
 Introduction
 ============
 
-Governing equations and corresponding variables used in the code are presented here.
+Governing equations and variables used in the code are presented here.
 
 -------------------------
    
-Conservation Forms 
+Equations 
 ==================
-
-We begin with the compressible equations of pure hydrodynamics without viscosity for the conserved state vector,
-:math:`\boldsymbol{U} = (\rho, \rho \boldsymbol{u}, \rho E):`
-
+We begin with defining the conserved variables for MHD equations,
+:math:`\boldsymbol{U} = (\rho, \rho \boldsymbol{u}, \rho E, \boldsymbol{B}):`
+where :math:`\rho` is the mass density, :math:`\boldsymbol{u}` is the velocity vector, :math:`E` is the total energy density, and :math:`\boldsymbol{B}` is the magnetic field vector.
+For single-fluid MHD equations, we have:
 .. math::
 
    \begin{align}
    \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \boldsymbol{u})&= 0 , \\
-   \frac{\partial (\rho \boldsymbol{u})}{\partial t} + \nabla \cdot (\rho \boldsymbol{u} \boldsymbol{u}) + \nabla P +\rho \nabla \Phi &=0, \\
-   \frac{\partial (\rho E)}{\partial t} + \nabla \cdot (\rho \boldsymbol{u} E + P \boldsymbol{u}) &= - \rho \boldsymbol{u} \nabla \Phi. \label{eq:compressible-equations}
+   \frac{\partial (\rho \boldsymbol{u})}{\partial t} + \nabla \cdot (\rho \boldsymbol{u} \boldsymbol{u}) + \nabla P &= - \rho \nabla \Phi, \\
+   \frac{\partial (E)}{\partial t} + \nabla \cdot (\boldsymbol{u} E + P \boldsymbol{u}) &= - \rho \boldsymbol{u} \nabla \Phi. \label{eq:compressible-equations}
    \end{align}
 
-Here :math:`\rho, \boldsymbol{u}, T, p`
-velocity, temperature, pressure
-respectively, and :math:`E = e + \boldsymbol{u} \cdot \boldsymbol{u} / 2` is the total
-energy with :math:`e` representing the internal energy. 
-
+For two-fluid HD-MHD equations, we have:
 .. math::
 
    \begin{align}
@@ -50,12 +46,12 @@ energy with :math:`e` representing the internal energy.
    \end{align}
 
 In the above formulas :math:`\rho_n, \mu_n, P_n, \boldsymbol{v_n}, \Gamma_n`, and :math:`E_n=\frac{P_n}{\Gamma_n-1}+\frac{1}{2}\rho_n|\boldsymbol{u_n}|^2` respectively denote the mass density, molecular weight, thermal pressure,
-velocity vector, specific heat ratio, and total energy density of neutrals. While :math:`\rho_i, \mu_i, P_i, \boldsymbol{v_i}, \Gamma_i`, and :math:`E_i=\frac{P_i}{\Gamma_i-1}+\frac{1}{2}\rho_i|\boldsymbol{v_i}|^2 + \frac{1}{2}|\boldsymbol{B}|^2` are the corresponding physical variables of ions, where :math:`|\boldsymbol{B}|` is the magnetic field vector.  
-:math:`\alpha=\alpha_0 max\left(1,\frac{|\boldsymbol{v_i}-\boldsymbol{v_n}|}{\boldsymbol{v_{\alpha}}}\right)` is the collision coefficient, in which :math:`\alpha_0=\frac{1.9\times10^{-19}}{m_n+m_i} cm^3 s^{-1}` (where :math:`m_n=\mu_n m_H, m_i=\mu_i m_H` with :math:`m_H` being the mass of hydrogen atom in the unit of g)
-, and :math:`\boldsymbol{v_{\alpha}} = 19.0 km s^{-`}` is the value of the drift velocity at which the Langevin approximation breaks down. Here we assume :math:`\mu_n=2.3` and :math:`\mu_i= 29` and the
-corresponding collision coefficient is :math:`3.7\times10^{13} cm^3 s^{-1} g^{-1}`. 
+velocity vector, specific heat ratio, and total energy density of neutrals. While :math:`\rho_i, \mu_i, P_i, \boldsymbol{v_i}, \Gamma_i`, and :math:`E_i=\frac{P_i}{\Gamma_i-1}+\frac{1}{2}\rho_i|\boldsymbol{v_i}|^2 + \frac{1}{2}|\boldsymbol{B}|^2` are the corresponding physical variables of ions, where :math:`\boldsymbol{B}` is the magnetic field.  
+:math:`\alpha=\alpha_0 max\left(1,\frac{|\boldsymbol{v_i}-\boldsymbol{v_n}|}{\boldsymbol{v_{\alpha}}}\right)` is the collision coefficient, in which :math:`\alpha_0=\frac{1.9\times10^{-19}}{m_n+m_i} cm^3 s^{-1}` (where :math:`m_n=\mu_n m_H, m_i=\mu_i m_H` with :math:`m_H` being the mass of hydrogen atom). In molecular cloud, we assume :math:`\mu_n=2.3` and :math:`\mu_i= 29` and the
+corresponding collision coefficient :math:`\alpha = 3.7\times10^{13} cm^3 s^{-1} g^{-1}`. 
 
-The finite volume method solve for conserved variables (density, momenta, total energy, and cell-centered magnetic fields). Primitive variables can be obtained easily (density, velocities, pressure, and cell-centered magnetic fields).
+Again, FVM always solves for conserved variables (density, momenta, total energy, and left-and-right interface magnetic fields). Primitive variables can be obtained easily.
+The conserved variables are stored in the variable array :math:`q(i,j,k,nvar)`, where :math:`i,j,k` are the cell indices and :math:`nvar` is the index of the variable.
 
    
    
