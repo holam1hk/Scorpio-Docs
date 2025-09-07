@@ -14,9 +14,10 @@ Governing equations and variables used in the code are presented here.
 Equations 
 ==================
 We begin with defining the conserved variables for MHD equations,
-:math:`\boldsymbol{U} = (\rho, \rho \boldsymbol{u}, \rho E, \boldsymbol{B}):`
+:math:`\boldsymbol{U} = (\rho, \rho \boldsymbol{u}, \rho E, \boldsymbol{B}),`
 where :math:`\rho` is the mass density, :math:`\boldsymbol{u}` is the velocity vector, :math:`E` is the total energy density, and :math:`\boldsymbol{B}` is the magnetic field vector.
 For single-fluid MHD equations, we have:
+
 .. math::
 
    \begin{align}
@@ -59,8 +60,8 @@ Hydrodynamics Data Structures
 =============================
 
 
-.. _table:constants:
-.. table:: constants:
+.. _table:Useful constants:
+.. table:: Useful constants:
     
    +-----------------------+-----------------------+-----------+-------------------------------+
    | **variable**          | **quantity**          | **value** |  **units**                    |
