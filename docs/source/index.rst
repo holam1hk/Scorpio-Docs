@@ -1,10 +1,13 @@
 Welcome to Scorpio's Documentation!
 =================================================
-**Scorpio** is developed by *SFG* in CUHK Physics to study star formation, planet formation and galaxy evolution. Scorpio uses finite volume method (FVM) for HD/MHD/ADMHD simulations. For the two-fluid (ion-neutral) model, 
-The Harten-Lax-van Leer-Contact (HLLC) Riemann solver30 and Harten-Lax-van Leer-Discontinuities (HLLD) Riemann solver31 are combined with linear piecewise polynomial interpolation and Minimod limiter32 to calculate the fluxes of neutral and ion flows.
+**Scorpio** is a grid-based finite-volume code developed by the *Star Formation Group (SFG)* at the Chinese University of Hong Kong (CUHK). It is designed for astrophysical simulations, including star formation and planet formation, supporting Hydrodynamics (HD), Magnetohydrodynamics (MHD), and Ambipolar Diffusion MHD (ADMHD).
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+The code solves fluid conservation equations using Godunov-type methods, employing a second-order accurate Total Variation Diminishing (TVD) scheme. Key numerical features include:
+
+*   **Flux Computation:** Utilizes a combination of the Harten-Lax-van Leer-Contact (HLLC) and Harten-Lax-van Leer-Discontinuities (HLLD) approximate Riemann solvers. A Piecewise Linear Method (PLM) for cell interpolation and various limiters are used to ensure the TVD property.
+*   **Magnetic Fields:** The divergence-free constraint of the magnetic field is maintained through the Constrained Transport (CT) method.
+*   **Self-Gravity:** Self-gravitating fluids are modeled using a Fast Fourier Transform (FFT)-based Poisson solver.
+*   **Ambipolar Diffusion:** The two-fluid model for ion-neutral drift is implemented with the second-order accurate TR-BDF2 (Trapezoidal Rule with second-order Backward Differentiation Formula) scheme, following the methodology of Tilley et al. (2012).
 
 .. note::
 
@@ -12,10 +15,6 @@ how to :ref:`installation` the project.
 
 Contents
 --------
-
-30. Toro, E. F., Spruce, M., & Speares, W. (1994). Restoration of the contact surface in the HLL-Riemann solver. Shock waves, 4(1), 25-34.
-31. Miyoshi, T., & Kusano, K. (2005). A multi-state HLL approximate Riemann solver for ideal magnetohydrodynamics. Journal of Computational Physics, 208(1), 315-344.
-32. Bryan, Greg L., et al. Enzo: An adaptive mesh refinement code for astrophysics. The Astrophysical Journal Supplement Series, 2014, 211.2: 19.
 
 .. note::
 
@@ -31,9 +30,10 @@ Contents
    selfgravity
    AD
    time_integration
-   parallelization
    riemann
    limiter
+   parallelization
+
 
 Indices and tables
 ==================
