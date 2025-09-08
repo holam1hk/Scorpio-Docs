@@ -6,24 +6,31 @@ Code Structure
 Getting Started
 ===============
 
-.. note:: TLDR
+.. note:: Set up ``Makefile`` and ``.bashrc`` properly. Make sure you have libraries ``fftw3``, ``hdf5``, and ``mpich`` installed and know the path.
 
-Set up ``Makefile`` and ``.bashrc`` properly.
 
-Procedures ::
+Procedures
+==========
 
 #. Clean the code
-   .. prompt:: bash
+
+   .. code-block:: bash
+
       make clean
 
 #. Compile the code
-   .. prompt:: bash
+
+   .. code-block:: bash
+
       make
 
 #. Run the code
-   .. prompt:: bash
-      mpiexec -n 8 ./Scorpio  
-8 means 8 cores.
+
+   .. code-block:: bash
+
+      mpiexec -n 8 ./Scorpio
+
+   8 means 8 cores.
 
 
 
@@ -89,8 +96,6 @@ For more information, visit: https://conda.io/projects/conda/en/latest/user-guid
 
 
 
-
-
 # Ramses (Teyssier 2002), 
 # PLUTO (Mignone et al. 2007), 
 # ENZO (Wang & Abel 2009), and 
@@ -110,8 +115,6 @@ Input file
 
 .. warning:: Don't use too many cpu cores
 
-and compute the fluxes of these quantities through the interfaces of the zones (this is a finite-volume approach). 
-Parallelization is achieved by domain decomposition. We divide our domain into many smaller boxes, and distributed these across processors. 
 
 Introduction
 ============
@@ -141,14 +144,14 @@ Stardard case setting ``testSuiteMPI.f90``::
     variable = 0
 
 
-    dims = (/0, 0, 0/)    ????
+    dims = (/0, 0, 0/)    
     call MPI_DIMS_CREATE(nprocs, ndim, dims, ierr)  
-    periods(1) = .true.  ????
+    periods(1) = .true. 
     periods(2) = .true.
     periods(3) = .true.
     reorder = .true.
-    call g1%setTopologyMPI(ndim, dims, periods, reorder)  ???
-    call g1%setGridID(gridID = gridID)  ???
+    call g1%setTopologyMPI(ndim, dims, periods, reorder)  
+    call g1%setGridID(gridID = gridID) 
     call g1%setTime(fstart = 0, tend = 0.02d0, dtout = 0.01d0)  !! time interval for data output
     call g1%setMesh(nMesh, leftBdry, rightBdry, nbuf, coordType, gridID)   !!calling ``setCoordinates.f90``
     call g1%setVariable(variable) !! den,vx,vy,vz,bx,by,bz,ene !!calling ``sgPlan.f90``  !!!!!!!!!!! claim memory for variables !!!!!!!!!
@@ -291,7 +294,7 @@ End
  
 ``calcSG.f90``& ``sgKernel.f90`` & ``initSGWindows3D.f90`` includes ::
 
-    i dont know
+
  
 End
  
@@ -317,21 +320,3 @@ End
     !! Skinner & Ostriker, 2010, ApJS, 188, 290 ??????????????????
 
 End
-
-To keep B-field divergence-free ( ), the constrained-transport algorithm33-35 is adopted
-
-33. Balsara, D. S., & Spicer, D. S. (1999). A staggered mesh algorithm using high order Godunov fluxes to ensure solenoidal magnetic fields in magnetohydrodynamic simulations. Journal of Computational Physics, 149(2), 270-292.
-34. Gardiner, T. A., & Stone, J. M. (2005). An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2), 509-539.
-35. Gardiner, T. A., & Stone, J. M. (2008). An unsplit Godunov method for ideal MHD via constrained transport in three dimensions. Journal of Computational Physics, 227(8), 4123-4141.
-
-The TR-BDF2 (trapezoidal rule and backward-difference formula of order two) scheme36 is employed to overcome the numerical stiffness of the ion-neutral collision source term.
-36. Tilley, D. A., Balsara, D. S., & Meyer, C. (2012). A numerical scheme and benchmark tests for non-isothermal two-fluid ambipolar diffusion. New Astronomy, 17(3), 368-376.
-
-
-The above procedures are coupled into the second-order Runge-Kutta (RK2) time-integration method40
-40. Mignone, A., et al. "PLUTO: a numerical code for computational astrophysics." The Astrophysical Journal Supplement Series 170.1 (2007): 228.
-
-alpha_ad = drag cofficient
-mu_ad(ion) = 29.0
-mu_ad(neutral) = 2.3	
-	
