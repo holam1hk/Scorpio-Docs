@@ -32,13 +32,12 @@ Procedures
 
    8 means 8 cores.
 
+.. warning:: Don't use too many cpu cores!!
 
 
-- Compiler mpif90
+- Suggested Compiler: mpif90
 
-- Makefile, O2 O3 optimization flag
-
-- libraries: fftw3, hdf5, mpich
+- Makefile: choose optimization flag -O2 for the first time, -O3 for faster run
 
 Different platforms
 ==================
@@ -63,32 +62,47 @@ Different platforms
 Create a new environment
 ========================
 #. Initialize conda
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda init
 
 #. Activate conda base environment
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda activate
-   # You are now in (base) environment
+
+   You are now in the base environment.
 
 #. Create new environment by cloning base
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda create -n my_new_env --clone base
 
 #. Create new environment from scratch with Python 3
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda create -n my_new_env python=3
 
 #. Activate the new environment
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda activate my_new_env
 
 #. Install packages
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda install <package_name>
 
 #. Update conda and all packages
-   .. prompt:: bash    
+
+   .. code-block:: bash    
+
       conda update --all
 
 For more information, visit: https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
@@ -96,14 +110,14 @@ For more information, visit: https://conda.io/projects/conda/en/latest/user-guid
 
 
 
-# Ramses (Teyssier 2002), 
-# PLUTO (Mignone et al. 2007), 
-# ENZO (Wang & Abel 2009), and 
-# FLASH (Fryxell et al. 2000).
-# Athena ++
-# Zeus
-# GIZMO 
-# SPH?
+.. # Ramses (Teyssier 2002), 
+.. # PLUTO (Mignone et al. 2007), 
+.. # ENZO (Wang & Abel 2009), and 
+.. # FLASH (Fryxell et al. 2000).
+.. # Athena ++
+.. # Zeus
+.. # GIZMO 
+.. # SPH?
 
 
 .. warning:: Column-major order is used in Fortran!!! 
@@ -111,9 +125,6 @@ For more information, visit: https://conda.io/projects/conda/en/latest/user-guid
 
 Input file
 ``TestSuite.f90``
-
-
-.. warning:: Don't use too many cpu cores
 
 
 Introduction
