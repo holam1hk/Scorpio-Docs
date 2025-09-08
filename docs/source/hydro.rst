@@ -141,12 +141,16 @@ Conserved variables
 
 Numerical setup
 =================
+The following parameters must be defined in the ``.f03`` file. For a normal user, you should specify the coordinate system `coordType`, boundary condition `boundaryType`, and equation of state `eosType`. The Riemann solver `solverType` and slope limiter `limiterType` can be left as default.
 
-.. _table:Coordinate Type:
-.. table:: coordType:
+Coordinate System
+----------------
+
+.. _table:Coordinate System:
+.. table:: Coordinate System:
    
    +---------------------------+-----------+
-   | **Coordinate System**     | **Values**|
+   | **coordType**             | **Values**|
    +===========================+===========+
    | ``Cartesian``             | 1         |                               
    +---------------------------+-----------+
@@ -155,11 +159,15 @@ Numerical setup
    | ``Cylindrical uniform r`` | 3         |                              
    +---------------------------+-----------+
 
-.. _table:Boundary Type:
-.. table:: boundaryType:
+
+Boundary Condition
+----------------
+
+.. _table:Boundary Condition:
+.. table:: Boundary Condition:
    
    +---------------------------+-----------+
-   | **Boundary Condition**    | **Values**|
+   | **boundaryType**          | **Values**|
    +---------------------------+-----------+
    | ``user defined``          | 0         | 
    +---------------------------+-----------+
@@ -170,11 +178,32 @@ Numerical setup
    | ``periodic``              | 3         |                              
    +---------------------------+-----------+
 
-.. _table:solverType:
-.. table:: solverType:
+   
+Equation of State
+----------------
+
+.. _table:Equation of State:
+.. table:: Equation of State:
    
    +---------------------------+-----------+
-   | **Riemann Solver**        | **Values**|
+   | **eosType**               | **Values**|
+   +===========================+===========+
+   | ``isothermal``            | 1         |                               
+   +---------------------------+-----------+
+   | ``adiabatic``             | 2         |                              
+   +---------------------------+-----------+
+
+.. note::
+   Not all EOS and solvers are supported.
+
+Riemann Solver
+----------------
+
+.. _table:Riemann Solver:
+.. table:: Riemann Solver:
+   
+   +---------------------------+-----------+
+   | **solverType**            | **Values**|
    +===========================+===========+
    | ``exactHD``               | 1         |                               
    +---------------------------+-----------+
@@ -186,12 +215,16 @@ Numerical setup
    +---------------------------+-----------+
    | ``HLLD``                  | 5         |                              
    +---------------------------+-----------+
-   
-.. _table:limiterType:
-.. table:: limiterType:
+
+
+Slope Limiter
+----------------
+
+.. _table:Slope Limiter:
+.. table:: Slope Limiter:
    
    +---------------------------+-----------+
-   | **Slope Limiter**         | **Values**|
+   | **limiterType**           | **Values**|
    +===========================+===========+
    | ``zero``                  | 0         |                               
    +---------------------------+-----------+
@@ -202,19 +235,12 @@ Numerical setup
    | ``minmod``                | 3         |                              
    +---------------------------+-----------+
    
-.. _table:eosType:
-.. table:: eosType:
-   
-   +---------------------------+-----------+
-   | **Equation of State**     | **Values**|
-   +===========================+===========+
-   | ``isothermal``            | 1         |                               
-   +---------------------------+-----------+
-   | ``adiabatic``             | 2         |                              
-   +---------------------------+-----------+
+Problem setup
+==============
 
-.. note::
-   Not all EOS and solvers are supported.
+Basic parameters
+----------------
+For a normal user, you should specify the number of dimensions `ndim`, number of meshes `nMesh(1)/(2)/(3)`, boundary positions `leftBdry(1)/(2)/(3)`, `rightBdry(1)/(2)/(3)`, endtime of simulation `time_end`, and soundspeed/adiabatic index `gam` or `adiGamma`. The other parameters can be left as default.
 
 
 .. _table:Problem setup:
@@ -237,11 +263,11 @@ Numerical setup
    +-----------------------------+----------------------+-------------------------------------------------------------+
    | ``rightBdry(1)/(2)/(3)``    | double precision     | Boundary position in each dimension                         |
    +-----------------------------+----------------------+-------------------------------------------------------------+
+   | ``gam`` or ``adiGamma``     | 5.d0/3.d0 (default)  | Useless if isothermal                                       |
+   +-----------------------------+----------------------+-------------------------------------------------------------+
    | ``sndspd``                  | double precision     | Soundspeed [km/s]                                           |
    +-----------------------------+----------------------+-------------------------------------------------------------+
-   | ``CFL``                     | 0 < CFL < 1          | CFL condition                                               |
-   +-----------------------------+----------------------+-------------------------------------------------------------+
-   | ``gam`` or ``adiGamma``     | 5.d0/3.d0 (default)  | Useless if isothermal                                       |
+   | ``CFL``                     | 0 < CFL < 1          | CFL condition (default 0.4)                                 |
    +-----------------------------+----------------------+-------------------------------------------------------------+
    | ``nstep``                   | integer              | Number of time steps                                        |
    +-----------------------------+----------------------+-------------------------------------------------------------+
@@ -277,6 +303,9 @@ File output
 MPI setup
 =================
 
+.. note::
+   If the periodic boundary condition `boundaryType = 3` is used, the MPI periodic boundary condition `periods(1)/(2)/(3)` must be `.true.`. The remaining parameters can be left as default.
+
 .. _table:MPI setup:
 .. table:: MPI setup:
 
@@ -301,6 +330,10 @@ MPI setup
 
 Physics Modules   
 =================
+
+Turbulence Driving
+------------------
+
 .. _table:TurbulenceDriving:
 .. table:: TurbulenceDriving:
 
@@ -311,7 +344,7 @@ Physics Modules
    +---------------------------+------------------+------------------------------------+
    | ``DT_mode``               | 0                | Drive at begining                  |            
    +---------------------------+------------------+------------------------------------+
-   | ``DT_mode``               | 1                | Drive periodically                 |             
+   |                           | 1                | Drive periodically                 |             
    +---------------------------+------------------+------------------------------------+
    | ``dt_turb``               | double precision | Energy injection time interval     |        
    +---------------------------+------------------+------------------------------------+
@@ -336,15 +369,20 @@ Physics Modules
    | ``netmomz_DT``            | double precision | Net momentum in z direction        |
    +---------------------------+------------------+------------------------------------+
 
+.. note::
+   Only periodic boundary condition is suuported for turbulence driving, the MPI periodic boundary condition ``periods(1)/(2)/(3)`` must be ``.true.``.
 
-   
+
+Self-gravity
+------------------
+
 .. _table:SelfGravity:
 .. table:: SelfGravity:
 
    +---------------------------+------------------------------------+------------------------------------+
    | **Variables**             | **Values**                         | **notes**                          |
    +===========================+====================================+====================================+
-   | ``SelfGravity``           | .true./.false.                     |                                    |
+   | ``SelfGravity``           | .true./.false.                     | Self-gravity or not                |
    +---------------------------+------------------------------------+------------------------------------+
    | ``sgBdryType``            | 0                                  | isolated                           |            
    +---------------------------+------------------------------------+------------------------------------+
@@ -358,6 +396,9 @@ Physics Modules
 
 .. note::
    If the periodic boundary condition for self-gravity ``sgBdryType = 1`` is used, the MPI periodic boundary condition ``periods(1)/(2)/(3)`` must be ``.true.``.
+
+Ambipolar Diffusion
+------------------
 
 .. _table:Ambipolar Diffusion:
 .. table:: Ambipolar Diffusion:
