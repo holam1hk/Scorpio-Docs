@@ -141,7 +141,7 @@ Conserved variables
 
 Numerical setup
 =================
-The following parameters must be defined in the ``.f03`` file. For a normal user, you should specify the coordinate system `coordType`, boundary condition `boundaryType`, and equation of state `eosType`. The Riemann solver `solverType` and slope limiter `limiterType` can be left as default.
+The following parameters must be defined in the ``.f03`` file. For a normal user, you should specify the coordinate system ``coordType``, boundary condition ``boundaryType``, and equation of state ``eosType``. The Riemann solver ``solverType`` and slope limiter ``limiterType`` can be left as default.
 
 Coordinate System
 ----------------
@@ -240,7 +240,7 @@ Problem setup
 
 Basic parameters
 ----------------
-For a normal user, you should specify the number of dimensions `ndim`, number of meshes `nMesh(1)/(2)/(3)`, boundary positions `leftBdry(1)/(2)/(3)`, `rightBdry(1)/(2)/(3)`, endtime of simulation `time_end`, and soundspeed/adiabatic index `gam` or `adiGamma`. The other parameters can be left as default.
+For a normal user, you should specify the number of dimensions ``ndim``, number of meshes ``nMesh(1)/(2)/(3)``, boundary positions ``leftBdry(1)/(2)/(3)``, ``rightBdry(1)/(2)/(3)``, endtime of simulation ``time_end``, and soundspeed/adiabatic index ``gam`` or ``adiGamma``. The other parameters can be left as default.
 
 
 .. _table:Problem setup:
@@ -304,7 +304,7 @@ MPI setup
 =================
 
 .. note::
-   If the periodic boundary condition `boundaryType = 3` is used, the MPI periodic boundary condition `periods(1)/(2)/(3)` must be `.true.`. The remaining parameters can be left as default.
+   If the periodic boundary condition ``boundaryType = 3`` is used, the MPI periodic boundary condition ``periods(1)/(2)/(3)`` must be ``.true.``. The remaining parameters can be left as default.
 
 .. _table:MPI setup:
 .. table:: MPI setup:
