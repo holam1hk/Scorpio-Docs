@@ -137,3 +137,6 @@ Conserved variables
 
 -  ``ene`` is only required for adiabatic EOS, but not for isothermal EOS. 
 -  The indices of variable q(i,j,k,nvar) counts from 1-nbuf to nMesh+nbuf. The last index refers to different variables in :numref:`table:Conserved variables`. 
+
+
+.. note:: `Gist for more useful units and constants <https://gist.github.com/S-Yuan137/33a1489bfc5d697e0748b76e0228fdf8>`
