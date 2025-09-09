@@ -49,8 +49,7 @@ For two-fluid HD-MHD equations, we have:
 
 In the above formulas :math:`\rho_n, \mu_n, P_n, \boldsymbol{v_n}, \Gamma_n`, and :math:`E_n=\frac{P_n}{\Gamma_n-1}+\frac{1}{2}\rho_n|\boldsymbol{u_n}|^2` respectively denote the mass density, molecular weight, thermal pressure,
 velocity vector, specific heat ratio, and total energy density of neutrals. While :math:`\rho_i, \mu_i, P_i, \boldsymbol{v_i}, \Gamma_i`, and :math:`E_i=\frac{P_i}{\Gamma_i-1}+\frac{1}{2}\rho_i|\boldsymbol{v_i}|^2 + \frac{1}{2}|\boldsymbol{B}|^2` are the corresponding physical variables of ions, where :math:`\boldsymbol{B}` is the magnetic field.  
-:math:`\alpha=\alpha_0 max\left(1,\frac{|\boldsymbol{v_i}-\boldsymbol{v_n}|}{\boldsymbol{v_{\alpha}}}\right)` is the collision coefficient, in which :math:`\alpha_0=\frac{1.9\times10^{-19}}{m_n+m_i} cm^3 s^{-1}` (where :math:`m_n=\mu_n m_H, m_i=\mu_i m_H` with :math:`m_H` being the mass of hydrogen atom). In molecular cloud, we assume :math:`\mu_n=2.3` and :math:`\mu_i= 29` and the
-corresponding collision coefficient :math:`\alpha = 3.7\times10^{13} cm^3 s^{-1} g^{-1}`. 
+The collision coefficient :math:`\alpha_0=\frac{1.9\times10^{-19}}{m_n+m_i} cm^3 s^{-1}` (where :math:`m_n=\mu_n m_H, m_i=\mu_i m_H` with :math:`m_H` being the mass of hydrogen atom). In molecular cloud, we assume :math:`\mu_n=2.3` and :math:`\mu_i= 29` and the corresponding collision coefficient :math:`\alpha = 3.7\times10^{13} cm^3 s^{-1} g^{-1}`. 
 
 Again, FVM always solves for conserved variables (density, momenta, total energy, and left-and-right interface magnetic fields). Primitive variables can be obtained easily.
 The conserved variables are stored in the variable array :math:`q(i,j,k,nvar)`, where :math:`i,j,k` are the cell indices and :math:`nvar` is the index of the variable.
@@ -104,7 +103,7 @@ The code units are taken for molecular cloud simulations.
    +-----------------------+-------------------------------------------+-------------------+--------------------------------+
    | ``B``                 | :math:`B_{code}=B_{phy}/\sqrt{4\pi}`      |                   | 8.0405e-7 :math:`\sqrt{g/cm}`/s|
    +-----------------------+-------------------------------------------+-------------------+--------------------------------+
-   | ``alpha``             | pc: math:`^2` * km / (s * M)              |                   | 5.012314e8 cm :math:`^3`/g/s   |
+   | ``alpha``             | pc :math:`^2` * km / (s * M)              |                   | 5.012314e8 cm :math:`^3`/g/s   |
    +-----------------------+-------------------------------------------+-------------------+--------------------------------+
 
 ..  +-----------------------+-------------------------------------------+-------------------+-------------------------------+ 

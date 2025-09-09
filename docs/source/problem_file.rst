@@ -1,7 +1,7 @@
 .. _ch:problem_file:
 
 *************
-Problem file
+Problem File
 *************
 
 

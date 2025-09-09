@@ -12,9 +12,6 @@ Suggested packages:
 - fftw-3.3.6
 - mpich-3.2
 
-Getting Started
-===============
-
 .. note:: Set up ``Makefile`` and ``.bashrc`` properly. Make sure you have libraries ``fftw3``, ``hdf5``, and ``mpich`` installed and know the path.
 
 
