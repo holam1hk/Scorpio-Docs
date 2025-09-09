@@ -24,8 +24,10 @@ Contents
    :maxdepth: 1
    :caption: Contents:
 
-   code_structure
+   getting_started
    hydro
+   problem_file
+   code_structure 
    selfgravity
    turbulence
    AD
