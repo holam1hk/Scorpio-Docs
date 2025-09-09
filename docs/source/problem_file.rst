@@ -103,7 +103,7 @@ Slope Limiter
    
 
 Basic parameters
-----------------
+================
 For a normal user, you should specify the number of dimensions ``ndim``, number of meshes ``nMesh(1)/(2)/(3)``, boundary positions ``leftBdry(1)/(2)/(3)``, ``rightBdry(1)/(2)/(3)``, endtime of simulation ``time_end``, and soundspeed/adiabatic index ``gam`` or ``adiGamma``. The other parameters can be left as default.
 
 
