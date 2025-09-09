@@ -101,8 +101,6 @@ Slope Limiter
    | ``minmod``                | 3         |                              
    +---------------------------+-----------+
    
-Problem setup
-==============
 
 Basic parameters
 ----------------
