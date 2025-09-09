@@ -5,20 +5,6 @@ Code Structure
 **************
 
 
-
-
-
-
-.. # Ramses (Teyssier 2002), 
-.. # PLUTO (Mignone et al. 2007), 
-.. # ENZO (Wang & Abel 2009), and 
-.. # FLASH (Fryxell et al. 2000).
-.. # Athena ++
-.. # Zeus
-.. # GIZMO 
-.. # SPH?
-
-
 .. warning:: Column-major order is used in Fortran!!! 
 
 
