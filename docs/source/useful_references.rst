@@ -1,8 +1,8 @@
 .. _ch:useful_references:
 
-*************
+*****************
 Useful References
-*************
+*****************
 
 MHD and astrophysical simulation codes
 ======================================
@@ -40,6 +40,60 @@ MHD and astrophysical simulation codes
 - `AREPO <https://arepo-code.org>`_
   - Springel, V. (2010). E pur si muove: Galilean-invariant cosmological hydrodynamical simulations on a moving mesh. Monthly Notices of the Royal Astronomical Society, 401(2), 791–851. DOI: https://doi.org/10.1111/j.1365-2966.2009.15715.x
 
+
+Methods used in Scorpio
+=======================
+
+Scorpio itself
+
+- Cheng, H. L., Wang, H.-H., Zeng, W.-G., Cao, Z., Luk, S. S., Tsang, M. H., & Li, H.-b. (2025). Scorpio: a two-fluid code for ambipolar diffusion simulations informed by recent observational constraints. RAS Techniques and Instruments, 4, 1–17. DOI: https://doi.org/10.1093/rasti/rzaf054 (`PDF <https://www.phy.cuhk.edu.hk/sfg/publications/Scorpio_RASTI.pdf>`_)
+
+Riemann solvers and reconstruction
+
+- Toro, E. F., Spruce, M., & Speares, W. (1994). Restoration of the contact surface in the HLL-Riemann solver. Shock Waves, 4, 25–34. — HLLC
+- Miyoshi, T., & Kusano, K. (2005). A multi-state HLL approximate Riemann solver for ideal magnetohydrodynamics. Journal of Computational Physics, 208, 315–344. — HLLD, and the degenerate-state prescription used by the hardened kernel
+- Mignone, A. (2007). A simple and accurate Riemann solver for isothermal MHD. Journal of Computational Physics, 225, 1427–1441. — isothermal HLLD
+- Colella, P., & Woodward, P. R. (1984). The piecewise parabolic method (PPM) for gas-dynamical simulations. Journal of Computational Physics, 54, 174–201. — PPM
+- Colella, P., & Sekora, M. D. (2008). A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227, 7069–7076. — tested, not adopted
+- Zhang, X., & Shu, C.-W. (2010). On positivity-preserving high order discontinuous Galerkin schemes for compressible Euler equations on rectangular meshes. Journal of Computational Physics, 229, 8918–8934. — the θ positivity guard
+- Skinner, M. A., & Ostriker, E. C. (2010). The Athena astrophysical MHD code in cylindrical geometry. The Astrophysical Journal Supplement Series, 188, 290–311. — limiters in cylindrical coordinates
+
+Constrained transport and positivity
+
+- Balsara, D. S., & Spicer, D. S. (1999). A staggered mesh algorithm using high order Godunov fluxes to ensure solenoidal magnetic fields in magnetohydrodynamic simulations. Journal of Computational Physics, 149, 270–292. — centred CT EMF
+- Gardiner, T. A., & Stone, J. M. (2005). An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205, 509–539. — upwinded corner EMF (default)
+- Gardiner, T. A., & Stone, J. M. (2008). An unsplit Godunov method for ideal MHD via constrained transport in three dimensions. Journal of Computational Physics, 227, 4123–4141.
+- Londrillo, P., & Del Zanna, L. (2004). On the divergence-free condition in Godunov-type schemes for ideal magnetohydrodynamics: the upwind constrained transport method. Journal of Computational Physics, 195, 17–48.
+- Mignone, A., & Del Zanna, L. (2021). Systematic construction of upwind constrained transport schemes for MHD. Journal of Computational Physics, 424, 109748.
+- Balsara, D. S. (2001). Divergence-free adaptive mesh refinement for magnetohydrodynamics. Journal of Computational Physics, 174, 614–648. — divergence-preserving prolongation on the AMR mesh
+- Stone, J. M., Tomida, K., White, C. J., & Felker, K. G. (2020). The Athena++ adaptive mesh refinement framework: design and magnetohydrodynamic solvers. The Astrophysical Journal Supplement Series, 249, 4. — first-order flux correction (FOFC)
+
+Self-gravity
+
+- James, R. A. (1977). The solution of Poisson's equation for isolated source distributions. Journal of Computational Physics, 25, 71–93. — screening-charge isolated boundary of the multigrid solver
+- Ricker, P. M. (2008). A direct multigrid Poisson solver for oct-tree adaptive meshes. The Astrophysical Journal Supplement Series, 176, 293–300.
+- Moon, S., Kim, W.-T., & Ostriker, E. C. (2019). A fast Poisson solver of second-order accuracy for isolated systems in three-dimensional Cartesian and cylindrical coordinates. The Astrophysical Journal Supplement Series, 241, 24.
+- Tomida, K., & Stone, J. M. (2023). The Athena++ adaptive mesh refinement framework: multigrid solvers for self-gravity. The Astrophysical Journal Supplement Series, 266, 7.
+- Chandrasekhar, S. (1969). Ellipsoidal Figures of Equilibrium. Yale University Press. — Maclaurin-spheroid gate
+- Truelove, J. K., et al. (1997). The Jeans condition: a new constraint on spatial resolution in simulations of isothermal self-gravitational hydrodynamics. The Astrophysical Journal, 489, L179–L183. — Truelove stop / Jeans refinement
+
+Adaptive mesh refinement
+
+- Löhner, R. (1987). An adaptive finite element scheme for transient problems in CFD. Computer Methods in Applied Mechanics and Engineering, 61, 323–338. — refinement indicator
+- Fryxell, B., et al. (2000). FLASH (see above). — block-structured octree design
+- Berger, M. J., & Colella, P. (1989). Local adaptive mesh refinement for shock hydrodynamics. Journal of Computational Physics, 82, 64–84. — refluxing
+
+Ion–neutral coupling
+
+- Tilley, D. A., Balsara, D. S., & Meyer, C. (2012). A numerical scheme and benchmark tests for non-isothermal two-fluid ambipolar diffusion. New Astronomy, 17, 368–376. — TR-BDF2 drag, C-shock benchmark
+- Pareschi, L., & Russo, G. (2005). Implicit-explicit Runge–Kutta schemes and applications to hyperbolic systems with relaxation. Journal of Scientific Computing, 25, 129–155. — IMEX-SSP2(2,2,2), (3,2,2)
+- Krapp, L., Garrido-Deutelmoser, J., Benítez-Llambay, P., & Kratter, K. M. (2024). A fast second-order solver for stiff multifluid dust and gas hydrodynamics. The Astrophysical Journal Supplement Series (arXiv:2310.04435). — the monotone IMEX(4,3,2) scheme (AthenaK "imex2+")
+- Kulsrud, R., & Pearce, W. P. (1969). The effect of wave-particle interactions on the propagation of cosmic rays. The Astrophysical Journal, 156, 445. — two-fluid Alfvén-wave dispersion relation (damping gate)
+
+Turbulence driving
+
+- Federrath, C., Roman-Duval, J., Klessen, R. S., Schmidt, W., & Mac Low, M.-M. (2010). Comparing the statistics of interstellar turbulence in simulations and observations: solenoidal versus compressive turbulence forcing. Astronomy & Astrophysics, 512, A81. — the projection operator (ζ)
+- Otto, F., Ji, W., & Li, H.-b. (2017). Velocity anisotropy in self-gravitating molecular clouds. I. Simulation. The Astrophysical Journal, 836, 95. — the ``expo`` driving spectrum
 
 
 

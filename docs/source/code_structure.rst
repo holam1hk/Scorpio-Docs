@@ -4,215 +4,240 @@
 Code Structure
 **************
 
+.. warning:: Column-major order is used in Fortran: in ``q(i,j,k,n)`` the
+   first index varies fastest in memory, and the arrays come out of ``h5py``
+   transposed, as ``(n, k, j, i)``.
 
-.. warning:: Column-major order is used in Fortran!!! 
-
-
-Input file
-``TestSuite.f90``
-
-
-Introduction
+Source files
 ============
-The file ``main.f90`` includes::
 
-    use testSuiteMPI
-    call MPI_INIT(ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD, np, ierr)
-    call setMPI(np) !nprocs=np=number of processes this subroutine is in gridmodule.f30
-    call setTestOnOff(.true.)
-    call MPI_FINALIZE(ierr)
-	
-End
+All sources are in ``src/`` and are built by the top-level ``Makefile``
+(``make``; the executable is ``./Scorpio``). One module, ``gridModule``,
+holds the grid object; its implementation is split into *submodules* (one
+file per topic), which is why most files are called ``gridModule_*.f03``.
 
-Stardard case setting ``testSuiteMPI.f90``::
+.. list-table::
+   :header-rows: 1
+   :widths: 30 12 58
 
-	integer :: gridID
-    type(grid) :: g1
-    integer :: ndim, nbuf, coordType, variable(8)
-    integer :: nMesh(3), dims(3)
-    double precision :: leftBdry(3), rightBdry(3)
-    logical :: periods(3), reorder
-    double precision :: t0, t1
-    integer :: nstep, ierr, N
-    gridID !! case ID
-	nstep = 0
-    variable = 0
+   * - file
+     - unit
+     - contents
+   * - ``main.f03``
+     - program
+     - ``MPI_INIT``, ``setMPI(np)``, ``runProblemFromNamelist``, dual-energy fire-rate summary, ``MPI_FINALIZE``
+   * - ``problemRegistry.f03``
+     - module
+     - reads ``problem.nml``; ``dispatchProblemByGridID`` (the ``select case`` on ``gridID``) and ``dispatchProblemByName``; the ``applyProblemInit*`` / ``applyProblemBoundary*`` hooks
+   * - ``scorpio_kinds.f03``
+     - module
+     - kind parameters
+   * - ``limiterModule.f03``
+     - module
+     - slope limiters ``zslop``, ``vslop`` (van Leer), ``fslop`` (MC), ``minmod``
+   * - ``gridModule.f03``
+     - module
+     - the ``grid`` derived type and its type-bound procedures (interfaces of all ``module subroutine`` s), run-option globals (dual energy, FOFC, PPM, HLLD, EMF), ``setVariable``, ``setTime`` (restart reader), ``writeGrid``, ``setTopologyMPI``, gravity enable/init, driving enable, ``TrueloveCondition``, ``setRunOption``
+   * - ``gridModule_setters.f03``
+     - submodule
+     - one-line setters: ``setGridID``, ``setEoS``, ``setSoundSpeed``, ``setAdiGamma``, ``setCFL``, ``setSolverType``, ``setSlopeLimiter``, ``setBoundaryType``, ``enableAD``, ``setADparams``
+   * - ``gridModule_coordinates.f03``
+     - submodule
+     - ``setCoordinates``: cell faces/centres/widths from ``leftBdry``, ``rightBdry``, ``nMesh``, ``nbuf`` (Cartesian and the two cylindrical options)
+   * - ``gridModule_windows.f03``
+     - submodule
+     - ``initMPIWindows1D/2D/3D``: one-sided MPI windows on ``q``, ``q1``, ``q2``; ``initSGWindows2D/3D``
+   * - ``gridModule_exchange.f03``
+     - submodule
+     - ``exchgBdryMPI1D/2D/3D``: ghost-zone exchange with ``MPI_WIN_FENCE`` + ``MPI_GET``/``MPI_PUT``
+   * - ``gridModule_boundary.f03``
+     - submodule
+     - ``setBdry1D/2D/3D``: physical boundaries — registry hook first, then ``select case (gridID)`` → the case's ``bdry<Case>`` routine
+   * - ``gridModule_init.f03``
+     - submodule
+     - ``init1d/2d/3d``: initial condition — registry hook first, then ``select case (gridID)`` → ``init<Case>``; seeds the dual-energy entropy
+   * - ``gridModule_dt.f03``
+     - submodule
+     - ``dt1D/2D/3D``: CFL time step, gravity limit, global minimum, output clamp
+   * - ``gridModule_rk2.f03``
+     - submodule
+     - ``rk2_1D/2D/3D``: the single-fluid Heun step with gravity sources and the failsafe ladder (:ref:`ch:time_integration`)
+   * - ``gridModule_source.f03``
+     - submodule
+     - ``source2D``: per-case external source hook called by ``rk2_2D`` (e.g. the Rayleigh–Taylor gravity, cases 44/45)
+   * - ``gridModule_io1d/2d/3d.f03``
+     - submodules
+     - parallel HDF5 writers/readers ``output1d/2d/3d``, ``read1d/2d/3d`` (hyperslab per rank)
+   * - ``gridModule_pvts.f03``
+     - submodule
+     - VTK/PVTS writers and readers (``writeGrid_HD_vtk``, ``writeGrid_MHD_vtk``, ``readGrid_*_vtk``)
+   * - ``gridModule_fft_plans.f03``
+     - submodule
+     - FFTW-MPI plans ``sgPlan2D/3D`` (gravity) and ``DTPlan2D/3D`` (driving), created in ``setVariable``
+   * - ``gridModule_sgcalc.f03``
+     - submodule
+     - FFT self-gravity: ``calcSG2D/3D`` (isolated), ``calcSG2D/3Dperiodic``, the hydro↔FFT-slab remaps (``remap_*``)
+   * - ``calcSG_MG.f03``
+     - submodule
+     - multigrid self-gravity ``calcSG2D_MG`` / ``calcSG3D_MG``: V-cycles, James and multipole boundaries, periodic gauge
+   * - ``exchgBdryMPI_sgMG.f03``
+     - module
+     - ghost exchange for the multigrid levels
+   * - ``gridModule_dtcalc.f03``
+     - submodule
+     - turbulence driving: ``calcDT2D/3D_MD`` (spectrum, projection, remap, momentum/energy normalisation), driving spectra
+   * - ``riemannSolverModule.f03``
+     - module
+     - the directional sweep solvers ``solver{Iso,IsoMHD,Adi,AdiMHD,Poly}{1D,2D,3D}`` with reconstruction (PLM/PPM), positivity guard, FOFC faces, CT EMF assembly, dual energy; the flux kernels ``flux*1D``
+   * - ``rk2.f03``
+     - external procedures
+     - two-fluid drivers: ``rk2AD_1D/2D/3D``, ``rk2AD_3D_HSHSMD`` / ``rk2AD_2D_HSHSMD`` (operator-split TR-BDF2, the production ones), the older ``rk2ADsg_*`` variants, and ``rk2MHD_3D`` (a single-fluid variant used by two Richtmyer–Meshkov cases)
+   * - ``evolveAmbipolarDiffusion.f03``
+     - external procedures
+     - the ion–neutral drag/heating update ``evolveAD1D/2D/3D``, ``evolveAD3D_MD`` (Tilley et al. 2012)
+   * - ``evolveAD_imex.f03``
+     - external procedures
+     - IMEX two-fluid drivers ``rk2AD_3D_IMEX``, ``rk2AD_3D_IMEX322``, ``rk2AD_3D_IMEXPP`` with ``adImexDragStage``, ``ad_imex_resync``
+   * - ``amrModule.f03``
+     - module
+     - block-structured AMR: tree, ghost fill, prolongation/restriction, reflux, EMF matching, regridding, base-grid and FAC gravity, projected output, checkpoints
+   * - ``testSuiteMPI.f03``
+     - module
+     - the standard test cases: for every case a driver, an ``init<Case>`` and a ``bdry<Case>`` routine
+   * - ``ShiboTestSuite.f03``
+     - module
+     - additional cases (``load_struct03``, ``MHD3DTurbDriven``, ``clumpRerun``)
+   * - ``testSuiteAMR.f03``
+     - module
+     - the AMR test cases (700–727) and the ``&amr_*`` namelist readers
+   * - ``spectrumCompensation.f03``
+     - module
+     - the spectrum-compensated driven-turbulence case (401)
+   * - ``hinnyCloud.f03``
+     - module
+     - the 20 pc cloud: uniform driver ``cloud_20pc3_3DMHD``, its ``initcloud_``/``bdrycloud_`` routines, ``&cloud_nml``, the AMR driver ``cloud_20pc3_3DMHD_AMR``
 
+Module dependency order (this is the order the Makefile compiles the
+module files in): ``scorpio_kinds`` → ``limiterModule`` → ``gridModule`` →
+``riemannSolverModule`` → ``exchangeBdryMPI_sgMG`` → ``testSuiteMPI`` →
+``amrModule`` → ``testSuiteAMR`` → ``problemRegistry``; the case modules
+(``ShiboTestSuite``, ``HinnyTestSuite``, ``SpectrumCompensationSuite``) sit
+between ``gridModule`` and ``problemRegistry``, and the submodules after
+``gridModule``.
 
-    dims = (/0, 0, 0/)    
-    call MPI_DIMS_CREATE(nprocs, ndim, dims, ierr)  
-    periods(1) = .true. 
-    periods(2) = .true.
-    periods(3) = .true.
-    reorder = .true.
-    call g1%setTopologyMPI(ndim, dims, periods, reorder)  
-    call g1%setGridID(gridID = gridID) 
-    call g1%setTime(fstart = 0, tend = 0.02d0, dtout = 0.01d0)  !! time interval for data output
-    call g1%setMesh(nMesh, leftBdry, rightBdry, nbuf, coordType, gridID)   !!calling ``setCoordinates.f90``
-    call g1%setVariable(variable) !! den,vx,vy,vz,bx,by,bz,ene !!calling ``sgPlan.f90``  !!!!!!!!!!! claim memory for variables !!!!!!!!!
-    call g1%setMPIWindows()
-    call g1%setEoS(eosType = 2) !! isothermal, 2 adiabatic
-    call g1%setadiGamma(gam = 5.d0 / 3.d0) !! ratio of heat capacity
-    call g1%setCFL(CFL = 0.4d0) !! courant number
-    call g1%setSlopeLimiter(limiterType = 3)  !! 0=>zero,1=>van Leer, 2=>fslop, 3=>minmod
-    call g1%setSolverType(solverType = 5) !! 1=>exactHD,2=HLLHD, 3=HLLC, 4=AdiHLLMHD, 5=AdiHLLDMHD ?????
-    call g1%setBoundaryType(boundaryType = 3)  !! 1=>zero gradient, 2=>reflective, 3=>periodic
-    call g1%initVariable()  !!  choose init1/2/3d.f90 by ndim
-    call g1%exchangeBdryMPI(g1%q, g1%winq)  !! calling exchgBdryMPI.f03
-    call g1%setBoundary(g1%q)  !!  calling ``setBdry3D.f03``
-    call g1%writeGrid()  !! calling output3d in ``inout.f90``
-	call g1%griddt()  !! calling ``dt3D.f03``
-    call g1%evolveGridRK2() !! calling rk2_3D.f03
-	Initial
-	Boundary
+Program flow
+============
 
-    call g1%enableDrivingTurbulence(DT_mode=1) !!! initialize fftw mpi
-	isRestart=0 !!!Default unless setRestart is called
-	
-End	
-``setCoordinates.f90`` includes ::
-	
-	#remarks: fortran can take negative indices. always define q[1-nbuf:nMesh+nbuf]
-	dx=(rightBdry(i)-leftBdry(i))/dble(nMesh(i))
-    do j=1-nbuf, nMesh(i)+nbuf  !! divide the grids from left-nbuf to right+nbuf
-    dx(i)=dx
-    xl(i)=leftBdry(i)+dble(j-1)*dx  !! leftmost cell left interface are nbuf away from the left bounday
-    xr(i)=leftBdry(i)+dble(j  )*dx  !! cell right interface is dx away from left interface
-    xc(i)=0.5d0*(xl(i)+xr(i))  !! cell center = average of left and right interface
-	
-End
-	
-	
-``sgPlan.f90``	includes ::
+.. code-block:: text
 
-	study more about 'fftw3-mpi.f03'
-	
+   main.f03
+     MPI_INIT → setMPI(np) [sets nprocs, myid] → setTestOnOff(.true.)
+     runProblemFromNamelist                             problemRegistry.f03
+       read &problem_config from problem.nml
+       dispatchProblemByGridID(gridID)  or  dispatchProblemByName(problem_name)
+         → one problem driver, e.g. cloud_20pc3_3DMHD (hinnyCloud.f03)
+             grid setup through the grid API            (Problem File page, "Grid setup API")
+             time loop: griddt → [driving] → evolveGridRK2 → writeGrid   (Time Integration page)
+     dual-energy fire-rate summary → MPI_FINALIZE
 
+Two dispatch tables besides the registry decide what a case does: the
+initial condition (``init3d`` in ``gridModule_init.f03``) and the physical
+boundary (``setBdry3D`` in ``gridModule_boundary.f03``) both do
+``select case (gridID)`` and call the case's ``init<Case>`` /
+``bdry<Case>`` routines — after first offering the ``applyProblemInit3D`` /
+``applyProblemBoundary3D`` hooks of the registry (used by the ``problem_name``
+cases). So a new case needs an entry in three places: ``problemRegistry.f03``
+(driver), ``gridModule_init.f03`` (initial condition) and
+``gridModule_boundary.f03`` (boundary), plus the ``use`` lines that import
+the routines.
 
-``init3D.f90`` includes ::
+The grid object
+===============
 
-	init3d
-	init3d_for_FFTW
-	
-End
+Everything about one mesh lives in one ``type(grid)`` variable (``g1`` in the
+drivers; ``gn`` and ``gi`` for the two fluids). The components you will meet
+when reading the code:
 
-``exchgBdryMPI.f03`` includes ::
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
 
-    subroutine initMPIWindows3D(this,q,q1,q2,databuf1,databuf2)
-    call MPI_SIZEOF(q(1,1,1,1),sizedouble,ierr)  ??????????
-    datasize=(nx+2*nbuf)*(ny+2*nbuf)*(nz+2*nbuf)*nvar*sizedouble
-    call MPI_WIN_CREATE(q ,datasize,sizedouble,MPI_INFO_NULL,MPI_COMM_WORLD,this%winq,ierr)
-	
-End
+   * - component
+     - meaning
+   * - ``nMesh(ndim)``, ``nMesh_global(ndim)``, ``meshStart(ndim)``
+     - local cells per direction, global cells, offset of this rank's block in the global mesh
+   * - ``nbuf``, ``ndim``, ``nvar``, ``variable(8)``, ``coordType``, ``gridID``
+     - ghost width, dimensions, number of stored variables, the variable flags, coordinate system, case ID
+   * - ``leftBdry``, ``rightBdry`` (+ ``_global``)
+     - box edges of the local block and of the whole domain
+   * - ``xl(d)%coords``, ``xr(d)%coords``, ``xc(d)%coords``, ``dx(d)%coords``
+     - left face, right face, centre and width of every cell along direction ``d``, indexed ``1-nbuf : nMesh(d)+nbuf``
+   * - ``q``, ``q1``, ``q2``
+     - the state and the two RK2 stage states. Stored as flat 1D arrays and passed to the sweeps as 4D
+       ``(1-nbuf:nx+nbuf, 1-nbuf:ny+nbuf, 1-nbuf:nz+nbuf, nvar)`` by sequence association; slot order
+       in :ref:`ch:hydro`
+   * - ``winq``, ``winq1``, ``winq2``, ``databuf1/2``
+     - MPI one-sided windows on the three states and the exchange buffers
+   * - ``t``, ``dt``, ``tend``, ``dtout``, ``toutput``, ``fnum``, ``fstart``, ``writeFlag``
+     - the clock and the output bookkeeping
+   * - ``CFL``, ``snd``, ``adiGamma``, ``eosType``, ``solverType``, ``limiterType``, ``boundaryType``
+     - the numerical settings (also stored in every snapshot)
+   * - ``enable_sg``, ``sgSolverType``, ``sgBdryType``, ``GravConst``, ``gphi``, ``sgfx/y/z``
+     - self-gravity switch, solver (0 FFT / 1 MG), boundary (0 isolated / 1 periodic), :math:`G`, potential and acceleration
+   * - ``sg*Kernel``, ``sg*Cmplx``, ``sgPlan*``, ``sgDensityBuffer``
+     - FFT gravity work arrays and plans
+   * - ``enable_DT``, ``DT_mode``, ``drivingWN_DT``, ``Energy_DT``, ``zeta_DT``, ``netmom*_DT``, ``DTenergyfaction``
+     - turbulence-driving switch and parameters
+   * - ``enable_ad``, ``mu_ad``, ``alpha_ad``
+     - two-fluid coupling parameters (set on both grids)
+   * - ``vu_mpi``, ``mpiCoord``, ``dims_mpi``, ``left/right/up/down/top/bottom_mpi``
+     - Cartesian communicator, this rank's coordinates and its six neighbours
+   * - ``changeSolver``, ``neg_pressure``
+     - failsafe flags raised by the sweeps and consumed by ``rk2_*``
 
-``setBdry3D.f03`` includes ::
+Where to look for what
+======================
 
-    call back in testsuite
-	
-End
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
 
-``inout.f90`` includes ::
+   * - I want to change …
+     - look in
+   * - the initial condition of a case
+     - ``init<Case>`` in the case's module (cloud: ``initcloud_20pc3_3DMHD`` in ``hinnyCloud.f03``)
+   * - the physical boundary of a case
+     - ``bdry<Case>`` (called from ``setBdry3D``)
+   * - the time step
+     - ``dt3D`` in ``gridModule_dt.f03``
+   * - the update / sources / failsafes
+     - ``rk2_3D`` in ``gridModule_rk2.f03``
+   * - reconstruction, Riemann flux, CT
+     - ``solverAdiMHD3D`` / ``solverIsoMHD3D`` and the ``flux*`` kernels in ``riemannSolverModule.f03``
+   * - a limiter
+     - ``limiterModule.f03``
+   * - gravity
+     - ``gridModule_sgcalc.f03`` (FFT), ``calcSG_MG.f03`` (multigrid), ``amrModule.f03`` (AMR coupling, FAC)
+   * - turbulence driving
+     - ``gridModule_dtcalc.f03``
+   * - what is written to the snapshot
+     - ``writeGrid`` in ``gridModule.f03`` and ``output3d`` in ``gridModule_io3d.f03``
+   * - the restart reader
+     - ``setTime`` in ``gridModule.f03``
+   * - MPI decomposition and ghost exchange
+     - ``setTopologyMPI`` (``gridModule.f03``), ``gridModule_windows.f03``, ``gridModule_exchange.f03``
+   * - the run-option switches (``SCORPIO_*``)
+     - top of ``gridModule.f03`` (declarations and documentation) and ``setVariable`` (where they are read)
+   * - AMR
+     - ``amrModule.f03``, design notes in ``docs/AMR_DESIGN.md`` and ``docs/FAC_GRAVITY_DESIGN.md``
 
-    read3d
+Conventions in the source
+=========================
 
-End	
-
-``dt3D.f03`` includes ::
-
-    dt_temp=1.d10
-	dt_pressure=1.d10
-    EOS=1
-	solverType = 1,2
-	vtot  !! total v
-	wavespd=vtot+snd
-    dt_temp=dmin1(dt_temp,dmin1(dmin1( dx(1)(i), dx(2)(j)), dx(3)(k))/wavespd*CFL)
-	solverType = 4,5
-	vtot=dsqrt(vsq)
-    bsq=(bxc**2+byc**2+bzc**2)/rho
-    bmin=dmin1(dmin1(dabs(bxc),dabs(byc)),dabs(bzc))  !! min b
-    cfast=dsqrt(0.5d0*(snd**2+bsq+dsqrt((snd**2+bsq)**2-4.d0*snd**2*bmin**2/rho)))  !! ????
-    wavespd=vtot+cfast
-    dt_temp=dmin1(dt_temp,dmin1(dmin1(dx(1),dx(2)),dx(3))/wavespd*CFL)
-	
-	EOS=2
-	solverType = 2,3
-	pressure=(gam-1.d0)*(ene-0.5d0*rho*(vx**2+vy**2+vz**2))
-    wavespd=vtot+dsqrt(gam*pressure/rho)
-    dt_temp=dmin1(dt_temp,dmin1(dmin1(dx(1),dx(2)),dx(3))/wavespd*CFL)
-	
-	solver=4,5
-	pressure=(gam-1.d0)*(ene-0.5d0*rho*vsq-0.5d0*bsq)
-    bmin=dmin1(dmin1(dabs(bxc),dabs(byc)),dabs(bzc))
-    cfast=dsqrt((gam*pressure+bsq+dsqrt((gam*pressure+bsq)**2.d0-4.d0*gam*pressure*bmin**2.d0))/(2.d0*rho))  !! !! ????
-    wavespd=vtot+cfast
-    dt_temp=dmin1(dt_temp,dmin1(dmin1(dx(1),dx(2)),dx(3))/wavespd*CFL)
-	
-	SG !! avoid large self gravity
-    sgftot=dsqrt(sgfx**2+sgfy**2+sgfz**2)
-    dt_temp=dmin1(dt_temp,0.2d0*(-vtot/sgftot+dsqrt(vtot**2/sgftot**2+2.d0*dmin1(dmin1(dx(1),dx(2)),dx(3))/sgftot)))  !! ????
-
-	call MPI_ALLREDUCE(dt_temp,global_dt,1,MPI_DOUBLE,MPI_MIN,MPI_COMM_WORLD,ierr)
-	
-	if (dt > toutput-t) then  !! check if dt is larger than 
-        global_dt = toutput-t
-        toutput=toutput+dtout
-        fnum=fnum+1
-    elseif(dt > tend-t) then
-        global_dt = tend-t
-        fnum=fnum+1
-    endif
-    dt=global_dt
-	
-End
-
-``rk2.f90`` includes ::
-
-    subroutine rk2ADsg_3D(nthis,qn,qn1,qn2,ithis,qi,qi1,qi2)
-    use gridModule
-    use riemannSolverModule
-    use mpi
-	
-	solverAdiMHD3D  !! includes ``riemannSolverModule.f90``
-	calcSelfgravity !!!!!! apply gravity !!!!!!! has ``calcSG.f90``???
-    evolveAD3D  !! ``evolveAmbipolarDiffusion.f90``
-
-    call nthis%exchangeBdryMPI(nthis%q1,nthis%winq1)
-    call nthis%setBoundary(nthis%q1)
-    call ithis%exchangeBdryMPI(ithis%q1,ithis%winq1)
-    call ithis%setBoundary(ithis%q1)
-   
-    again for rk2 step 2 
-    call MPI_ALLREDUCE(nthis%changeSolver,global_changeSolvern,1,MPI_LOGICAL,MPI_LOR,MPI_COMM_WORLD,ierr)
-    call MPI_ALLREDUCE(ithis%changeSolver,global_changeSolveri,1,MPI_LOGICAL,MPI_LOR,MPI_COMM_WORLD,ierr)
-
-End
- 
-``calcSG.f90``& ``sgKernel.f90`` & ``initSGWindows3D.f90`` includes ::
-
-
- 
-End
- 
-``riemannSolverModule.f90`` includes ::  
-   
-    !!!!!!!!!!!ask for more about this
-    !!!!!!!!!The Harten-Lax-van Leer-Contact (HLLC) Riemann solver neutral and Harten-Lax-van Leer-Discontinuities (HLLD) Riemann solver ion
-    !!!!!!30. Toro, E. F., Spruce, M., & Speares, W. (1994). Restoration of the contact surface in the HLL-Riemann solver. Shock waves, 4(1), 25-34.
-    31. Miyoshi, T., & Kusano, K. (2005). A multi-state HLL approximate Riemann solver for ideal magnetohydrodynamics. Journal of Computational Physics, 208(1), 315-344.
-    how about !!!!!!!! Gardiner & Stone, JCP, 2005, 205, 509?
-   
-End   
-      
-``evolveAmbipolarDiffusion.f90`` includes ::  
-
-    evolveAD3D  !!!! D. A. Tilly, D. S. Balsara, C. Meyer, 2012, New Astronomy, 17, 368 !!!!
-
-End  
-   
-``limiterModule.f90`` includes ::
-
-    Minimod limiter 3  !! Bryan, Greg L., et al. Enzo: An adaptive mesh refinement code for astrophysics. The Astrophysical Journal Supplement Series, 2014, 211.2: 19.?
-    !! Skinner & Ostriker, 2010, ApJS, 188, 290 ??????????????????
-
-End
+- Comments tagged ``[OPUS]`` / ``[FABLE]`` mark the 2026 additions (dual
+  energy, FOFC, PPM, CT, IMEX, AMR) and usually carry the date and the reason;
+  ``CHANGES.md`` in the repository root is the narrative index of them.
+- Arrays with ghost cells are always declared ``1-nbuf : nMesh+nbuf``;
+  interior loops run ``1 : nMesh``.
+- Real constants are written ``1.d0``; every routine has ``implicit none``.
+- Rank 0 prints; use ``if (myid .eq. 0)`` for new diagnostics.
