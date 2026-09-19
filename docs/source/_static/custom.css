@@ -1,0 +1,27 @@
+/* Scorpio docs: use the full browser width and let wide tables wrap
+   instead of being clipped (sphinx_rtd_theme caps the content column at
+   800 px and forces white-space: nowrap in responsive tables). */
+
+.wy-nav-content {
+    max-width: none;
+}
+
+.wy-table-responsive {
+    overflow: visible;
+}
+
+.wy-table-responsive table td,
+.wy-table-responsive table th {
+    white-space: normal !important;
+}
+
+.rst-content table.docutils td,
+.rst-content table.docutils th {
+    vertical-align: top;
+}
+
+/* keep the call-graph trees aligned but let very long lines scroll rather
+   than push the page wider */
+.rst-content pre {
+    overflow-x: auto;
+}
