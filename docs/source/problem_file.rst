@@ -48,7 +48,7 @@ writes all output there. The minimum is:
      - integer
      - Case number; dispatched by ``src/problemRegistry.f03``. Also used in the
        output file names ``g<gridID>_<fnum>.h5``. An unknown value prints the
-       list of supported IDs and aborts. Full map: ``docs/LegacyGridID.md``.
+       list of supported IDs and aborts. The complete map is in :ref:`sec:all_cases`.
    * - ``problem_name``
      - ``'sod'``, ``'load_struct03'``, ``'load_struct03_withAD'``
      - Named cases; used only when ``gridID`` is absent or ≤ 0.
@@ -704,8 +704,8 @@ Every entry is optional; a missing entry keeps the value in the driver.
 AMR (``gridID`` 700–727, 801)
 -----------------------------
 
-The block-structured AMR driver (``src/amrModule.f03``, design in
-``docs/AMR_DESIGN.md``) reads these groups. Refinement uses the Löhner (1987)
+The block-structured AMR driver (``src/amrModule.f03``; how it works is
+described in :ref:`ch:methods`) reads these groups. Refinement uses the Löhner (1987)
 second-derivative indicator on density (plus total energy and :math:`B^2` in
 3D), optionally combined with a Jeans-length criterion.
 
@@ -752,7 +752,7 @@ second-derivative indicator on density (plus total energy and :math:`B^2` in
    * -
      - ``amr_fac``, ``amr_fac_iters``
      - 0, 1
-     - Enable the FAC multi-level gravity solve (``docs/FAC_GRAVITY_DESIGN.md``) and its number of composite passes.
+     - Enable the FAC multi-level gravity solve (:ref:`ch:selfgravity`, "On the AMR mesh") and its number of composite passes.
    * - ``&amr_restart``
      - ``amr_fstart``
      - 0
@@ -800,3 +800,450 @@ named:
      - AMR self-gravity tests (720/721)
    * - ``SCORPIO_NBUF``, ``SCORPIO_TEST_LIMITER``, ``SCORPIO_RAW``
      - 3D isothermal MHD shock tube (48), field-loop reconstruction study (61), raw (no failsafe) diagnostic mode of the 3D ion blast (59)
+
+
+.. _sec:all_cases:
+
+All cases (``gridID`` map)
+==========================
+
+Generated from ``dispatchProblemByGridID`` in ``src/problemRegistry.f03``:
+the driver routine each ``gridID`` runs and the file that defines it.
+Pairs (``26, 27`` …) are two-fluid cases: neutral and ion grid IDs.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 30 22 36
+
+   * - ``gridID``
+     - driver
+     - file
+     - notes
+   * - 1
+     - ``isoShockTube1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 2
+     - ``SodShockTube1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 3
+     - ``WCShockTube1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 4
+     - ``isoShockTube2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 5
+     - ``SodShockTube2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 6
+     - ``WCShockTube2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 7
+     - ``doubleMachReflection``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 8
+     - ``strongRarefactionTest``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 9
+     - ``ShuOsherShockTubeTest``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 10
+     - ``BrioWuShockTube1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 11
+     - ``RJ2aShockTube1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 12
+     - ``BrioWuShockTube2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 13
+     - ``OrsagTangVortex``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 14
+     - ``sphericalBlastWaveMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 15
+     - ``BFieldLoopTest2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 16
+     - ``rotorMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 17
+     - ``currentSheetMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 18
+     - ``CPAlvenWave``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 19
+     - ``linearSlowWaveTestMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 20
+     - ``linearFastWaveTestMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 21
+     - ``selfgravityTest2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 22,23
+     - ``CShockTest1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 26,27
+     - ``WardleInstability``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 28,29
+     - ``coreCollapseAD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 30
+     - ``SodShockTube3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 31
+     - ``isoShockTube3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 32
+     - ``BrioWuShockTube3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 33
+     - ``FieldLoopAdvection``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 34
+     - ``MHDBlastWave``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 35
+     - ``selfgravityTest3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 36
+     - ``HDBlastWavePolar2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 37
+     - ``HDBlastWaveCart2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 38
+     - ``HDBlastWavePolarIso2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 39
+     - ``HDBlastWaveCartIso2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 40
+     - ``sphericalBlastWaveMHDPolar2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 41
+     - ``forceBalanceMHDPolar2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 42
+     - ``KelvinHelmholtzInstabilityHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 43
+     - ``KelvinHelmholtzInstabilityMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 44
+     - ``RayleighTaylorInstabilityHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 45
+     - ``RayleighTaylorInstabilityMHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 46
+     - ``isoShockTubeMHD1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 47
+     - ``OrsagTangVortexIso``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 48
+     - ``isoShockTubeMHD3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 49
+     - ``isoMHDsg3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 50
+     - ``polyShockTubeHD1D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 51
+     - ``polyShockTubeHD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 52,53
+     - ``CShockTest3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 54,55
+     - ``sphericalBlastWaveAD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 56
+     - ``ionBlastSingleFluid2D``
+     - ``testSuiteMPI.f03``
+     - single-fluid MHD replica of the ion blast (no AD)
+   * - 57
+     - ``ionBlastSingleFluidOblique2D``
+     - ``testSuiteMPI.f03``
+     - same, but B at 45 deg to the grid
+   * - 58
+     - ``CPAlvenWaveLowBeta``
+     - ``testSuiteMPI.f03``
+     - low-beta (4e-4) CP Alfven wave, 5 periods
+   * - 59
+     - ``ionBlastSingleFluid3D``
+     - ``testSuiteMPI.f03``
+     - 3D low-beta ion blast (dual-energy 3D check)
+   * - 60
+     - ``CPAlvenWaveConvergence``
+     - ``testSuiteMPI.f03``
+     - linear-wave convergence (N from SCORPIO_WAVE_N)
+   * - 61
+     - ``BFieldLoopRecon2D``
+     - ``testSuiteMPI.f03``
+     - field loop for reconstruction studies (PPM)
+   * - 609,616
+     - ``ADMHD3D``
+     - ``testSuiteMPI.f03``
+     - two-fluid 3D driven turbulence (copied from collaborator)
+   * - 620,621
+     - ``ADAlfvenWave``
+     - ``testSuiteMPI.f03``
+     - two-fluid Alfven damping test (AD-scheme A/B harness)
+   * - 100
+     - ``TestDrivingTurbulence3DMHD``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 122,123
+     - ``CShockTest2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 199
+     - ``AdiShockTubeMHD3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 200
+     - ``HDRichtmyerMeshkovInstability2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 201
+     - ``MHDRichtmyerMeshkovInstability2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 202
+     - ``HDRichtmyerMeshkovInstability3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 203
+     - ``MHDRichtmyerMeshkovInstability3D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 357
+     - ``selfgravityTest2D_MG``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 358
+     - ``selfgravityTest3D_MG``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 359
+     - ``selfgravityMaclaurin3D``
+     - ``testSuiteMPI.f03``
+     - Maclaurin spheroid (Chandrasekhar 1969; Ricker 2008)
+   * - 360
+     - ``FreefallCollapse3D``
+     - ``testSuiteMPI.f03``
+     - pressureless free-fall vs cycloid (analytic t_ff)
+   * - 361
+     - ``PoissonSinUniform3D``
+     - ``testSuiteMPI.f03``
+     - uniform periodic sinusoid vs exact phi (Tomida & Stone 2023 style)
+   * - 399
+     - ``TestDrivingTurbulence2DHD``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 400
+     - ``TestDrivingTurbulence3DHD``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 401
+     - ``SpectrumCompensation3DHD``
+     - ``spectrumCompensation.f03``
+     - driven turbulence + k^-2 spectrum compensation (Feiyu & Tommy)
+   * - 500,501
+     - ``KHI_AD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 557
+     - ``selfgravityTest2D_MG_new``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 558
+     - ``selfgravityTest3D_MG_periodic``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 600,601
+     - ``RMI_AD2D``
+     - ``testSuiteMPI.f03``
+     - 
+   * - 1688
+     - ``MHD3DTurbDriven``
+     - ``ShiboTestSuite.f03``
+     - 
+   * - 1689
+     - ``clumpRerun``
+     - ``ShiboTestSuite.f03``
+     - 
+   * - 1690
+     - ``load_struct03``
+     - ``ShiboTestSuite.f03``
+     - 
+   * - 1691,1692
+     - ``load_struct03_withAD``
+     - ``ShiboTestSuite.f03``
+     - block-structured AMR cases (700–727)
+   * - 700
+     - ``AMRSodShockTube2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 701
+     - ``AMRHDBlastCart2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 702
+     - ``AMRHDBlastRefined2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 703
+     - ``AMRFieldLoop2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 704
+     - ``AMRSphBlastMHD2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 705
+     - ``AMRFieldLoopRefined2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 706
+     - ``AMRHDBlastDynamic2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 707
+     - ``AMRFieldLoopDynamic2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 710
+     - ``AMRSodShockTube3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 711
+     - ``AMRBrioWu3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 712
+     - ``AMRSod3DRefined``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 713
+     - ``AMRBrioWu3DRefined``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 714
+     - ``AMRSod3DDynamic``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 715
+     - ``AMRBrioWu3DDynamic``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 716
+     - ``AMRSod3DDeep``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 717
+     - ``AMRBrioWu3DDeep``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 718
+     - ``AMRFieldLoop3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 719
+     - ``AMRFieldLoop3DOblique``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 720
+     - ``AMRSelfGravity2D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 721
+     - ``AMRSelfGravity3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 722
+     - ``AMRJeansCollapse3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 723
+     - ``AMRSedov3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 724
+     - ``AMRJeansWave3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 725
+     - ``AMRTwoSphere3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 726
+     - ``AMREvrard3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 727
+     - ``AMRPoissonSin3D``
+     - ``testSuiteAMR.f03``
+     - 
+   * - 800
+     - ``cloud_20pc3_3DMHD``
+     - ``hinnyCloud.f03``
+     - Hinny 20pc^3 magnetized cloud (uniform)
+   * - 801
+     - ``cloud_20pc3_3DMHD_AMR``
+     - ``hinnyCloud.f03``
+     - Hinny cloud on AMR (MG gravity, undriven)

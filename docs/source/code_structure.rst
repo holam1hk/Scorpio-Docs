@@ -149,7 +149,7 @@ boundary (``setBdry3D`` in ``gridModule_boundary.f03``) both do
 cases). So a new case needs an entry in three places: ``problemRegistry.f03``
 (driver), ``gridModule_init.f03`` (initial condition) and
 ``gridModule_boundary.f03`` (boundary), plus the ``use`` lines that import
-the routines.
+the routines. A complete worked example is in :ref:`sec:new_case`.
 
 The grid object
 ===============
@@ -229,7 +229,306 @@ Where to look for what
    * - the run-option switches (``SCORPIO_*``)
      - top of ``gridModule.f03`` (declarations and documentation) and ``setVariable`` (where they are read)
    * - AMR
-     - ``amrModule.f03``, design notes in ``docs/AMR_DESIGN.md`` and ``docs/FAC_GRAVITY_DESIGN.md``
+     - ``amrModule.f03`` (:ref:`ch:methods` for how it works; the design notes ``docs/AMR_DESIGN.md`` and ``docs/FAC_GRAVITY_DESIGN.md`` live in the code repository)
+
+.. _sec:new_case:
+
+Adding a new case
+=================
+
+A case is three routines plus three registrations. The example adds a 3D
+isothermal MHD case with ``gridID = 802`` called ``myCloud``; put the
+routines into an existing case module (here ``HinnyTestSuite`` in
+``src/hinnyCloud.f03``) so that no Makefile change is needed.
+
+**1. The driver** — builds the grid, chooses the physics, runs the loop.
+This is the complete minimal version (fresh start only; the cloud driver
+shows the optional pieces: gravity, driving, restart, Truelove stop):
+
+.. code-block:: fortran
+
+   subroutine myCloud(gridID)
+       integer, intent(in) :: gridID
+       type(grid) :: g1
+       integer :: ndim, nbuf, coordType, variable(8), nMesh(3), dims(3), ierr
+       double precision :: leftBdry(3), rightBdry(3)
+       logical :: periods(3), reorder
+
+       ndim = 3;  nbuf = 2;  coordType = 1                  ! 3D, two ghost cells, Cartesian
+       variable = 1                                         ! den, momx/y/z, bxl/byl/bzl, ene -> MHD
+       nMesh = (/32, 32, 64/)
+       leftBdry  = (/-5.d0, -5.d0, -10.d0/)                 ! pc
+       rightBdry = (/ 5.d0,  5.d0,  10.d0/)
+       dims = 0;  call MPI_DIMS_CREATE(nprocs, ndim, dims, ierr)
+       periods = .true.;  reorder = .true.
+
+       call g1%setGridID(gridID = gridID)
+       call g1%setTopologyMPI(ndim, dims, periods, reorder)
+       call g1%setMesh(nMesh, leftBdry, rightBdry, nbuf, coordType, gridID)
+       call g1%setVariable(variable)
+       call g1%setMPIWindows()
+       call g1%setEoS(eosType = 1);  call g1%setSoundSpeed(snd = 0.3d0)   ! isothermal, 0.3 km/s
+       call g1%setCFL(CFL = 0.4d0)
+       call g1%setSlopeLimiter(limiterType = 3)                          ! minmod
+       call g1%setSolverType(solverType = 5)                             ! HLLD
+       call g1%setBoundaryType(boundaryType = 3)                         ! periodic
+       call g1%setTime(fstart = 0, tend = 1.d0, dtout = 0.1d0)
+       call g1%initVariable()                                            ! -> initmyCloud (via init3d)
+       call g1%exchangeBdryMPI(g1%q, g1%winq)
+       call g1%setBoundary(g1%q)                                         ! -> bdrymyCloud (via setBdry3D)
+       call g1%writeGrid()                                               ! g0802_0000.h5
+       g1%writeFlag = .false.
+
+       do while (g1%t .lt. g1%tend)
+           call g1%griddt()
+           call g1%evolveGridRK2()
+           if (myid .eq. 0) print *, "myCloud: t =", g1%t, " dt =", g1%dt
+           if (g1%writeFlag) then
+               call g1%writeGrid()
+               g1%writeFlag = .false.
+           end if
+       end do
+   end subroutine myCloud
+
+**2. The initial condition** — fills the interior cells of ``q`` on this
+rank; the coordinates ``this%xc(d)%coords`` are already the global positions
+of the local cells:
+
+.. code-block:: fortran
+
+   subroutine initmyCloud(this, q)
+       class(grid) :: this
+       double precision, dimension(1-this%nbuf:this%nMesh(1)+this%nbuf, 1-this%nbuf:this%nMesh(2)+this%nbuf, &
+                                   1-this%nbuf:this%nMesh(3)+this%nbuf, this%nvar) :: q
+       integer :: i, j, k
+       double precision :: x, y, z, rho, b0
+
+       b0 = 35.d0                                            ! code units (x 2.9 for microgauss)
+       do k = 1, this%nMesh(3)
+           do j = 1, this%nMesh(2)
+               do i = 1, this%nMesh(1)
+                   x = this%xc(1)%coords(i);  y = this%xc(2)%coords(j);  z = this%xc(3)%coords(k)
+                   rho = 1.d0 + 10.d0*exp(-(x*x + y*y + z*z))
+                   q(i,j,k,1)   = rho                       ! density        [Msun/pc^3]
+                   q(i,j,k,2:4) = 0.d0                      ! momentum = rho * velocity
+                   q(i,j,k,5) = 0.d0;  q(i,j,k,9)  = 0.d0   ! Bx on the left face / right face
+                   q(i,j,k,6) = 0.d0;  q(i,j,k,10) = 0.d0   ! By
+                   q(i,j,k,7) = b0;    q(i,j,k,11) = b0     ! Bz: uniform field along z
+                   q(i,j,k,8)   = 0.d0                      ! energy (isothermal: not used)
+               end do
+           end do
+       end do
+   end subroutine initmyCloud
+
+Set both face slots of every field component (:ref:`sec:conserved`); the
+ghost cells are filled afterwards by ``exchangeBdryMPI`` / ``setBoundary``.
+
+**3. The boundary routine** — ``setBdry3D`` calls it after the MPI
+exchange on every ghost fill. It is entirely the case's responsibility:
+``boundaryType`` is only a label the routine may test, and ``left_mpi < 0``
+(and ``right_mpi``, ``up_mpi``, ``down_mpi``, ``top_mpi``, ``bottom_mpi``)
+tells whether this rank sits at a physical edge. With a periodic box every
+face has an MPI neighbour and the routine does nothing:
+
+.. code-block:: fortran
+
+   subroutine bdrymyCloud(this, q)
+       class(grid) :: this
+       double precision, dimension(1-this%nbuf:this%nMesh(1)+this%nbuf, 1-this%nbuf:this%nMesh(2)+this%nbuf, &
+                                   1-this%nbuf:this%nMesh(3)+this%nbuf, this%nvar) :: q
+       integer :: i, nx
+
+       if (this%boundaryType .ne. 1) return                  ! periodic: the MPI exchange did it
+       nx = this%nMesh(1)
+       if (this%left_mpi .lt. 0) then                        ! zero gradient at the physical x edges
+           do i = 1, this%nbuf
+               q(1-i, :, :, :) = q(1, :, :, :)
+           end do
+       end if
+       if (this%right_mpi .lt. 0) then
+           do i = 1, this%nbuf
+               q(nx+i, :, :, :) = q(nx, :, :, :)
+           end do
+       end if
+   end subroutine bdrymyCloud
+
+**4. Register the three routines** — one line in each of three files:
+
+.. code-block:: fortran
+
+   ! src/problemRegistry.f03 — the driver
+   use HinnyTestSuite, only: cloud_20pc3_3DMHD, cloud_20pc3_3DMHD_AMR, myCloud
+   ...
+       case(802)
+         call myCloud(gridID=802)
+
+   ! src/gridModule_init.f03, subroutine init3d — the initial condition
+   use HinnyTestSuite, only: initcloud_20pc3_3DMHD, initmyCloud
+   ...
+       case(802)
+         call initmyCloud(this,q)
+
+   ! src/gridModule_boundary.f03, subroutine setBdry3D — the boundary
+   use HinnyTestSuite, only: bdrycloud_20pc3_3DMHD, bdrymyCloud
+   ...
+       case(802)
+         call bdrymyCloud(this,q)
+
+Then ``make``, put ``gridID = 802`` in ``problem.nml`` and run. Two-fluid
+cases register a *pair* of IDs (``case(26, 27)`` calling one driver with
+``gridIDn`` and ``gridIDi``) and provide ``init``/``bdry`` routines for each
+grid.
+
+If the routines go into a **new file**, that file is a new module: add it
+to ``MOD_SRCS`` in the ``Makefile`` and give it the dependency lines the
+existing case modules have (``problemRegistry.o``, ``gridModule_init.o`` and
+``gridModule_boundary.o`` must depend on it, and it on ``gridModule.o``).
+
+Checklist: a ``gridID`` nobody else uses; ``variable(5:7)`` all 1 or all 0,
+``variable(8) = 1`` for any MHD run; ``nMesh`` divisible by the rank counts
+you will use; ``periods`` matching ``boundaryType``; a ``.h5`` file appears
+after the first step.
+
+.. _sec:source_terms:
+
+Adding a source term
+====================
+
+Where a source goes depends on how fast it acts and whether it must be part
+of the Runge–Kutta stages:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 34 40
+
+   * - kind of source
+     - where
+     - pattern in the code
+   * - body force / heating that is smooth on the time step (gravity, an external potential, a cooling function)
+     - inside ``rk2_3D`` (``gridModule_rk2.f03``), once per stage, after the three sweeps and before ``exchangeBdryMPI``; evaluated from the stage's *input* state, added to the stage's *output* state; interior cells only
+     - self-gravity: ``q1(mom) += q(rho)*g*dt``, ``q1(ene) += (q(mom)·g)*dt`` in stage 1, the same from ``q1`` into ``q2`` in stage 2
+   * - the same, but per case and in 2D
+     - ``source2D`` (``gridModule_source.f03``): ``rk2_2D`` calls ``source2D(this, q, q1)`` and ``source2D(this, q1, q2)`` after the sweeps of each stage; it dispatches on ``gridID``
+     - the Rayleigh–Taylor gravity (cases 44/45). There is no ``source3D`` yet — adding one means a ``module subroutine source3D`` in the same file, its interface in ``gridModule.f03``, and the two calls in ``rk2_3D``
+   * - stiff relaxation (a rate faster than the time step, e.g. the ion–neutral drag)
+     - either operator-split after the sweeps of each stage (``evolveAD3D_MD``, called from ``rk2AD_3D_HSHSMD``) or implicitly inside the stage (``adImexDragStage`` in the IMEX drivers)
+     - solve the stiff term per cell exactly or implicitly; the IMEX placement avoids the splitting error when the relaxation time is much shorter than ``dt``
+   * - something that changes the state between steps (a turbulence kick, a re-seeding)
+     - in the driver's time loop, before ``evolveGridRK2``
+     - the ``DT_mode = 1`` kick: modify ``g%q``, then ``exchangeBdryMPI`` + ``setBoundary``
+
+Rules that apply to all of them:
+
+- Work on the interior ``1:nMesh`` and refresh the ghost zones afterwards;
+  never write into the ghost cells directly.
+- Add the source to both stages, from the right input state (``q`` → ``q1``,
+  then ``q1`` → ``q2``); the Heun average then makes it second order.
+- Momentum sources need the matching energy source in adiabatic runs
+  (``rho u · a`` for a force); isothermal runs carry no usable energy.
+- In adiabatic MHD runs the dual-energy entropy ``σ = P/ρ^(γ-1)`` (the last
+  slot of ``q``) is re-synchronised inside the sweeps. A source that changes
+  the internal energy *after* the sweeps must update σ as well, otherwise
+  low-β cells — which take their pressure from σ — will not see the heating.
+  The two-fluid drivers do exactly this after the drag step ("post-drag
+  re-sync").
+- If the source has its own time scale, add its limit to ``dt3D``, as the
+  gravity acceleration limit is.
+- Keep it deterministic and rank-independent: no random numbers without a
+  reproducible seed, no dependence on the decomposition.
+
+.. _sec:globals:
+
+Run-option globals in ``gridModule``
+====================================
+
+Besides the ``grid`` type, ``gridModule.f03`` declares module-level variables
+that act on every grid. Most are the run options a user sets through
+``SCORPIO_*`` environment variables (or ``setRunOption`` from a driver);
+they are read **once**, in ``setVariable`` (and again in ``amrConfigure3D``
+for AMR runs), which is why phase-1 calls must precede it.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 12 22 44
+
+   * - variable
+     - default
+     - set by
+     - read in / effect
+   * - ``nprocs``, ``myid``
+     - —
+     - ``setMPI`` (``main.f03``)
+     - everywhere; ``if (myid .eq. 0)`` guards prints
+   * - ``dual_energy_on``
+     - ``.true.``
+     - ``SCORPIO_DUAL_ENERGY``
+     - the entropy branch in ``solverAdiMHD2D/3D``, the two-fluid drivers, ``amrModule``
+   * - ``dual_energy_thr``
+     - 1e-3
+     - ``SCORPIO_DE_THR``
+     - same: fire when ``e_int < thr * E``
+   * - ``dual_energy_nfire``, ``dual_energy_ntot``
+     - 0
+     - counters
+     - summed and printed by ``main.f03`` at the end of the run
+   * - ``de_print``
+     - ``.true.``
+     - ``SCORPIO_DE_PRINT``
+     - the rank-local ``[dual-energy]`` line when cells are rescued
+   * - ``health_monitor``, ``de_rescued``
+     - ``.false.``, 0
+     - ``SCORPIO_HEALTH``
+     - ``opus_report_health`` (one line per eventful step, one ``MPI_ALLREDUCE``)
+   * - ``use_legacy_failsafe``
+     - ``.false.``
+     - ``SCORPIO_LEGACY_FAILSAFE``
+     - the decision block of ``rk2_2D/3D``: global HLL switch / global dt halving instead of FOFC
+   * - ``dt_halve_on``
+     - ``.true.``
+     - ``SCORPIO_DT_HALVE``
+     - the dt-halving rung of the failsafe ladder (``rk2_*``, two-fluid and IMEX drivers)
+   * - ``disable_failsafe``
+     - ``.false.``
+     - set in code by the raw-diagnostic case (``SCORPIO_RAW``)
+     - ``rk2_*`` accept every step as is (no FOFC, no retry)
+   * - ``fofc_pass``, ``fofc_npass``, ``fofc_flag`` (2D), ``fofc_flag3d`` (3D)
+     - ``.false.``, 0, unallocated
+     - the RK drivers
+     - read by the sweep solvers: faces touching a flagged cell use first-order HLL during a redo
+   * - ``use_ppm``, ``ppm_warned``
+     - ``.false.``
+     - ``SCORPIO_PPM``
+     - reconstruction branch of the 2D/3D MHD sweeps (needs ``nbuf = 3``; one warning otherwise)
+   * - ``use_upwind_emf``
+     - ``.true.``
+     - ``SCORPIO_UPWIND_EMF``
+     - CT corner-EMF assembly in the MHD sweeps (``0`` = centred average)
+   * - ``hlld_eps``
+     - 1e-8
+     - ``SCORPIO_HLLD_EPS``
+     - degeneracy threshold inside ``fluxHLLDAdiMHD1D`` / ``fluxHLLDIsoMHD1D``
+   * - ``hlld_star_check``, ``hlld_fallback``, ``hlld_degen``
+     - ``.false.``, 0, 0
+     - ``SCORPIO_HLLD_STARCHECK``; counters
+     - per-face admissibility check with HLL fallback; counts reported by the health monitor
+   * - ``ad_imex``, ``ad_imex322``, ``ad_imexpp``
+     - ``.false.``
+     - ``SCORPIO_AD_SCHEME``
+     - which two-fluid driver ``ADMHD3D`` calls (split / IMEX variants)
+   * - ``amr_capture``, ``amr_flo``/``amr_fhi``, ``amr_flo3``/``amr_fhi3``, ``amr_e*``
+     - ``.false.``, unallocated
+     - ``amrStep`` / ``amrStep3D``
+     - when true the sweeps copy their block-edge fluxes and edge EMFs into these arrays for refluxing and EMF matching; inert on uniform grids
+   * - ``SG_SOLVER_FFT/MG``, ``SG_BDRY_ISOLATED/PERIODIC``
+     - 0/1, 0/1
+     - parameters
+     - the values of ``sgSolverType`` and ``sgBdryType``
+
+Two things follow from this layout. First, an option changed in the
+environment after ``setVariable`` has run has no effect — set it before
+launching, or from the top of the driver with ``setRunOption``. Second, the
+flags are shared by every grid in the process, so in a two-fluid run both
+fluids necessarily use the same reconstruction, EMF and dual-energy settings.
 
 Conventions in the source
 =========================

@@ -26,6 +26,7 @@ Contents
    :caption: Contents:
 
    getting_started
+   quickstart
    hydro
    problem_file
    methods

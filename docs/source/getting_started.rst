@@ -91,8 +91,7 @@ writes all output there, so use one directory per experiment:
 
 ``-n 4`` is the number of MPI ranks; use 1, 2, 4, 8, 16, … and mesh sizes
 that are multiples of 16. ``gridID`` selects the case (800 is the 20 pc
-cloud; the map of all cases is in ``docs/LegacyGridID.md`` and the most used
-ones are listed on the Problem File page). Long runs:
+cloud; every case is listed in :ref:`sec:all_cases`). Long runs:
 ``nohup mpirun -n 8 /path/to/Scorpio > run.log 2>&1 &``.
 
 .. note::
@@ -129,13 +128,13 @@ Validation
 
 Machine-independent invariants (no NaN, :math:`\max|\nabla\cdot\boldsymbol{B}|<10^{-9}`,
 mass drift :math:`<10^{-11}`, positivity, convergence order) are enforced on
-every run; ``validation/README.md`` lists the tests.
+every run; the tests are listed in :ref:`ch:methods` (Validation gate).
 
 Where to go next
 ================
 
-- ``GETTING_STARTED.md`` in the repository: a step-by-step guide to running
-  and modifying the 20 pc cloud case without knowing the solver internals.
+- :ref:`ch:quickstart` — run the 20 pc cloud, look at the output, change
+  its settings and its physics, restart it.
 - :ref:`ch:problem_file` — every setting, namelist group and ``SCORPIO_*``
   option.
 - :ref:`ch:hydro` — equations, code units with cgs/SI conversions, the

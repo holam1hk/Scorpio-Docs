@@ -123,4 +123,5 @@ Test cases
 
 The C-shock and Alfvén-damping harnesses are the reference tests for the
 coupling schemes; the measured properties of each scheme are summarised in
-:ref:`ch:methods` and, in full, in ``CHANGES.md`` §8 and §10.
+:ref:`ch:methods` (the measured numbers are in the code repository's
+``CHANGES.md``, sections 8 and 10).

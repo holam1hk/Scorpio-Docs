@@ -125,8 +125,9 @@ AMR runs use the multigrid solver only. The base-level covering grid
                      amr_fac_iters > 1: facTauCorrect3 → base re-solve → scatter → refine again
    amrApplyGravSource3(m, sel, tgt)   momentum / energy sources per block
 
-Design and gate results are in ``docs/FAC_GRAVITY_DESIGN.md``; the summary
-is in :ref:`ch:methods`.
+The FAC scheme, its gates and known limits are summarised in
+:ref:`ch:methods`; the full design notes are ``docs/FAC_GRAVITY_DESIGN.md``
+in the code repository.
 
 Tests
 =====
