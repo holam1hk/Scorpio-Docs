@@ -420,15 +420,10 @@ checkpoints as described above.
 Validation gate
 ===============
 
-``validation/validate.sh`` rebuilds the code and runs the Tier 0–2 battery
-(Brio–Wu, CP Alfvén wave with its convergence order, rotor, MHD blast, field
-loop, Sod, Einfeldt rarefaction, Shu–Osher, Woodward–Colella, …) in about five
-minutes; ``--full`` adds Orszag–Tang, the oblique and low-:math:`\beta` cases,
-the two-fluid blast and the 3D blast. Machine-independent invariants are
-enforced on every run — no NaN, :math:`\max|\nabla\cdot\boldsymbol{B}| < 10^{-9}`,
-mass drift :math:`< 10^{-11}`, no negative pressure or density in the final
-state, no legacy failsafe engagements, zero entropy-branch fires on
-high-:math:`\beta` tests, Alfvén-wave convergence order :math:`> 1.4` — while
-the reference values themselves are machine-local (``--update-refs`` once on a
-new machine). ``validation/amr_gates.sh`` and ``validation/gravity_analytic.sh``
-are the corresponding AMR and gravity batteries.
+Every method above is held to the test batteries described on the
+:ref:`ch:validation` page: ``validation/validate.sh`` (the uniform-grid
+standards and invariants, run before every commit), ``amr_gates.sh`` /
+``server_pipeline.sh`` (parity, conservation, div B, np-invariance, restart
+and multi-level gates of the AMR path) and ``gravity_analytic.sh`` /
+``gravity_deep.sh`` (self-gravity against closed-form solutions). The
+certified numbers quoted on this page are the values those gates enforce.

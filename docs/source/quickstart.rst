@@ -390,7 +390,7 @@ Cheat sheet
 .. code-block:: bash
 
    # build (after every edit in src/)
-   cd /path/to/scorpio_modern && make FFTW_PREFIX=/usr/local -j4
+   cd /path/to/scorpio_modern && make
 
    # run
    mkdir -p ~/runs/exp1 && cd ~/runs/exp1

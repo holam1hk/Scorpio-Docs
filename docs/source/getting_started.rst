@@ -34,8 +34,7 @@ FFTW-MPI once from source (about five minutes):
    ./configure --enable-shared --enable-threads --enable-mpi MPICC=mpicc
    make -j4 && sudo make install && sudo ldconfig
 
-which installs it under ``/usr/local`` (hence ``FFTW_PREFIX=/usr/local``
-below). With OpenMPI throughout (``openmpi-bin``, ``libhdf5-openmpi-dev``,
+With OpenMPI throughout (``openmpi-bin``, ``libhdf5-openmpi-dev``,
 ``libfftw3-mpi-dev``) no source build is needed.
 
 On a cluster load the corresponding modules (``module load <mpi>
@@ -49,13 +48,16 @@ From the repository root:
 
 .. code-block:: bash
 
-   make print-config                     # shows the compiler, MPI, HDF5 and FFTW that will be used
-   make FFTW_PREFIX=/usr/local -j4       # builds ./Scorpio (drop FFTW_PREFIX if FFTW is in a standard path)
-   make clean && make FFTW_PREFIX=/usr/local -j4     # clean rebuild
+   make print-config      # shows the compiler, MPI, HDF5 and FFTW that will be used
+   make                   # builds ./Scorpio
+   make clean && make     # clean rebuild
 
-The build writes objects and module files under ``build/``; the only
-product is the executable ``./Scorpio``. Run ``make`` again after any change
-in ``src/`` — only the changed files and their dependants are recompiled.
+The ``Makefile`` finds the libraries through the ``h5pfc`` wrapper and the
+system paths; nothing has to be passed on the command line on a machine that
+is set up. The build writes objects and module files under ``build/``; the
+only product is the executable ``./Scorpio``. Run ``make`` again after any
+change in ``src/`` — only the changed files and their dependants are
+recompiled.
 
 .. list-table::
    :header-rows: 1
@@ -64,7 +66,7 @@ in ``src/`` — only the changed files and their dependants are recompiled.
    * - compile error
      - fix
    * - ``Cannot open included file 'fftw3-mpi.f03'``
-     - add ``FFTW_PREFIX=/path/to/fftw``
+     - FFTW is not in a standard path: ``make FFTW_PREFIX=/path/to/fftw`` (e.g. ``/usr/local`` for a source build)
    * - ``h5pfc: command not found``
      - install the parallel-HDF5 development package / load its module, or ``make FC=<wrapper>``
    * - ``undefined reference to fftw_mpi_…``
@@ -80,19 +82,27 @@ Quick checks that the build works:
 Run
 ===
 
-The executable reads ``problem.nml`` from the directory it is started in and
-writes all output there, so use one directory per experiment:
+The case to run is chosen in ``problem.nml``, a small text file in the
+directory you start the code from (all output is written there too):
+
+.. code-block:: fortran
+
+   &problem_config
+     gridID = 800
+   /
+
+Then run with MPI:
 
 .. code-block:: bash
 
-   mkdir -p ~/runs/test1 && cd ~/runs/test1
-   printf '&problem_config\n  gridID = 800\n/\n' > problem.nml
-   mpirun -n 4 /path/to/scorpio_modern/Scorpio 2>&1 | tee run.log
+   mpirun -n 4 ./Scorpio
 
-``-n 4`` is the number of MPI ranks; use 1, 2, 4, 8, 16, … and mesh sizes
-that are multiples of 16. ``gridID`` selects the case (800 is the 20 pc
-cloud; every case is listed in :ref:`sec:all_cases`). Long runs:
-``nohup mpirun -n 8 /path/to/Scorpio > run.log 2>&1 &``.
+``-n 4`` is the number of MPI ranks (CPU cores); use 1, 2, 4, 8, 16, … and
+mesh sizes that are multiples of 16. ``gridID`` selects the case — 800 is
+the 20 pc cloud; every case is listed in :ref:`sec:all_cases`, and the
+per-case settings (``&cloud_nml`` etc.) are on the Problem File page. For a
+long run that should survive logging out:
+``nohup mpirun -n 8 ./Scorpio > run.log 2>&1 &``.
 
 .. note::
    On WSL, when the run directory is on a Windows drive (``/mnt/c/…``),
@@ -118,17 +128,10 @@ these can be continued with the restart options (Problem File page).
 Validation
 ==========
 
-.. code-block:: bash
-
-   ./validation/validate.sh                 # quick gate (~5 min): builds, then Tier 0–2 tests + low-β robustness
-   ./validation/validate.sh --full          # + the heavy Tier 3 cases (~15–20 min)
-   ./validation/validate.sh --update-refs   # once on a new machine: reference values are machine-local
-   ./validation/amr_gates.sh --np "1 8"     # AMR battery
-   ./validation/gravity_analytic.sh         # analytic self-gravity gates
-
-Machine-independent invariants (no NaN, :math:`\max|\nabla\cdot\boldsymbol{B}|<10^{-9}`,
-mass drift :math:`<10^{-11}`, positivity, convergence order) are enforced on
-every run; the tests are listed in :ref:`ch:methods` (Validation gate).
+``./validation/validate.sh`` rebuilds the code and runs the standard test
+battery in about five minutes; run it before committing a change. The
+batteries, what they check and how to read their reports are on the
+:ref:`ch:validation` page.
 
 Where to go next
 ================

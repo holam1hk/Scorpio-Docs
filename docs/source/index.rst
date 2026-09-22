@@ -30,6 +30,7 @@ Contents
    hydro
    problem_file
    methods
+   validation
    code_structure 
    selfgravity
    turbulence
