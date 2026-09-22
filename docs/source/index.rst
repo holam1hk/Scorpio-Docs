@@ -31,6 +31,7 @@ Contents
    problem_file
    methods
    validation
+   developer_guide
    code_structure 
    selfgravity
    turbulence

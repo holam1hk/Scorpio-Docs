@@ -4,42 +4,20 @@
 Getting Started
 ***************
 
-Requirements
-============
+Scorpio is a grid-based finite-volume MPI code for hydrodynamics,
+magnetohydrodynamics and two-fluid ambipolar diffusion. This page is what you
+need on a machine where it is already installed: build it, run a case, find
+the output.
 
-Scorpio needs three libraries, all built against the **same** MPI:
+.. note::
+   The libraries Scorpio needs (MPI, parallel HDF5, FFTW-MPI) are already
+   installed on the group's machines, so there is nothing to install. If you
+   are setting up a new machine, or building with a different compiler or
+   library paths, see :ref:`ch:developer`.
 
-- an MPI library (MPICH or OpenMPI) with a Fortran compiler (gfortran);
-- **parallel HDF5** with the Fortran interface — the compiler wrapper
-  ``h5pfc`` it installs is what the ``Makefile`` calls, and it supplies the MPI
-  and HDF5 flags automatically;
-- **FFTW3 with MPI support** (``libfftw3_mpi``).
-
-Python 3 with ``numpy`` and ``h5py`` (and ``matplotlib``) is needed for the
-validation scripts and for looking at the output.
-
-On Ubuntu / WSL with MPICH:
-
-.. code-block:: bash
-
-   sudo apt install build-essential gfortran make mpich libhdf5-mpich-dev hdf5-tools \
-                    libfftw3-dev python3-numpy python3-h5py python3-matplotlib
-
-Ubuntu's ``libfftw3-mpi-dev`` is built against OpenMPI, so with MPICH build
-FFTW-MPI once from source (about five minutes):
-
-.. code-block:: bash
-
-   cd /tmp && wget http://www.fftw.org/fftw-3.3.10.tar.gz && tar xzf fftw-3.3.10.tar.gz && cd fftw-3.3.10
-   ./configure --enable-shared --enable-threads --enable-mpi MPICC=mpicc
-   make -j4 && sudo make install && sudo ldconfig
-
-With OpenMPI throughout (``openmpi-bin``, ``libhdf5-openmpi-dev``,
-``libfftw3-mpi-dev``) no source build is needed.
-
-On a cluster load the corresponding modules (``module load <mpi>
-<hdf5-parallel> <fftw>``); if the parallel-HDF5 wrapper has another name
-than ``h5pfc``, pass it with ``make FC=<wrapper>``.
+You will also want Python 3 with ``numpy`` and ``h5py`` (and ``matplotlib``)
+to look at the output; see the appendix below if you prefer your own
+environment.
 
 Build
 =====
@@ -59,18 +37,9 @@ only product is the executable ``./Scorpio``. Run ``make`` again after any
 change in ``src/`` — only the changed files and their dependants are
 recompiled.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 45 55
-
-   * - compile error
-     - fix
-   * - ``Cannot open included file 'fftw3-mpi.f03'``
-     - FFTW is not in a standard path: ``make FFTW_PREFIX=/path/to/fftw`` (e.g. ``/usr/local`` for a source build)
-   * - ``h5pfc: command not found``
-     - install the parallel-HDF5 development package / load its module, or ``make FC=<wrapper>``
-   * - ``undefined reference to fftw_mpi_…``
-     - FFTW-MPI was built against a different MPI than the compiler wrapper uses
+If ``make`` fails with a missing library or a missing ``h5pfc``, the
+machine is not set up as expected — the build variables and the common
+compile errors are in :ref:`ch:developer`.
 
 Quick checks that the build works:
 
@@ -144,9 +113,13 @@ Where to go next
   variable layout.
 - :ref:`ch:methods` and :ref:`ch:time_integration` — what the code does in
   a step and which routine does it.
+- :ref:`ch:developer` — setting up a new machine, build options, and
+  working on the code.
 
-Platforms used by the group
-===========================
+Machines where Scorpio is set up
+================================
+
+The group's machines, with the libraries already installed:
 
 - tianhexy
 - cluster2
@@ -158,8 +131,11 @@ Platforms used by the group
 - stor2
 - nas3
 
-Create a new Python environment (optional)
-==========================================
+Appendix: your own Python environment (optional)
+================================================
+
+Only needed if the system Python does not have ``numpy``, ``h5py`` and
+``matplotlib``, or you want them isolated:
 
 #. Initialize conda
 
