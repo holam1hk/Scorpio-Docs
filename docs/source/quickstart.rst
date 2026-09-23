@@ -28,12 +28,18 @@ touch is in two places:
 ========================
 
 Scorpio reads ``problem.nml`` from, and writes everything to, the directory
-it is started in — one directory per experiment:
+it is started in. Keep the runs out of the source tree: make a directory for
+each one next to the code directory, in the folder above it.
 
 .. code-block:: bash
 
-   mkdir -p ~/runs/test && cd ~/runs/test
-   cat > problem.nml <<'EOF'
+   cd ..                        # the folder that holds the code directory
+   mkdir cloud_test && cd cloud_test
+
+Write ``problem.nml`` there with any editor:
+
+.. code-block:: fortran
+
    &problem_config
      gridID = 800
    /
@@ -43,12 +49,18 @@ it is started in — one directory per experiment:
      cloud_dtout_tff = 0.01          ! snapshot interval in free-fall times (production: 0.1)
      cloud_truelove = .false.        ! don't stop on the resolution criterion in a test
    /
-   EOF
-   mpirun -n 4 /path/to/scorpio_modern/Scorpio 2>&1 | tee run.log
+
+and run:
+
+.. code-block:: bash
+
+   mpirun -n 4 ../scorpio_modern/Scorpio 2>&1 | tee run.log
 
 ``-n 4`` is the number of MPI ranks — use 1, 2, 4, 8, 16, … with mesh sizes
-that are multiples of 16. For a long run that should survive logging out:
-``nohup mpirun -n 8 /path/to/Scorpio > run.log 2>&1 &``.
+that are multiples of 16. ``../scorpio_modern/Scorpio`` is the executable
+``make`` built; adjust the path if your code directory has another name. For
+a long run that should survive logging out:
+``nohup mpirun -n 8 ../scorpio_modern/Scorpio > run.log 2>&1 &``.
 
 .. note::
    On WSL with the run directory on a Windows drive (``/mnt/c/…``), first
@@ -389,19 +401,17 @@ Cheat sheet
 
 .. code-block:: bash
 
-   # build (after every edit in src/)
-   cd /path/to/scorpio_modern && make
+   # build, in the code directory (after every edit in src/)
+   make
 
-   # run
-   mkdir -p ~/runs/exp1 && cd ~/runs/exp1
-   printf '&problem_config\n  gridID = 800\n/\n&cloud_nml\n  cloud_nmesh = 64, 64, 128\n/\n' > problem.nml
+   # a run directory next to the code directory, with its own problem.nml
+   cd .. && mkdir exp1 && cd exp1
    export HDF5_USE_FILE_LOCKING=FALSE          # WSL on /mnt only
-   mpirun -n 4 /path/to/scorpio_modern/Scorpio 2>&1 | tee run.log
+   mpirun -n 4 ../scorpio_modern/Scorpio 2>&1 | tee run.log
 
    # watch
    grep "t=" run.log | tail -3
    ls g0800_*.h5 | wc -l
 
-   # continue a stopped run from its last snapshot (here #42), same directory
-   printf '&problem_config\n  gridID = 800\n/\n&cloud_nml\n  cloud_restart = .true.\n  cloud_fstart = 42\n/\n' > problem.nml
-   mpirun -n 4 /path/to/scorpio_modern/Scorpio 2>&1 | tee -a run.log
+   # continue a stopped run: add cloud_restart/cloud_fstart to problem.nml, same directory
+   mpirun -n 4 ../scorpio_modern/Scorpio 2>&1 | tee -a run.log
