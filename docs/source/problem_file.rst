@@ -90,6 +90,50 @@ Frequently used ``gridID`` values:
    the registry prints a hint when it detects this.
 
 
+.. _sec:all_namelists:
+
+Everything ``problem.nml`` accepts
+----------------------------------
+
+The file may contain any of these groups, in any order; a group that is
+absent leaves the driver's own values in place, and a group a driver does not
+read is ignored. Only ``&problem_config`` is required.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 46 34
+
+   * - group
+     - entries
+     - read by
+   * - ``&problem_config``
+     - ``gridID`` (``grid_id``), ``problem_name``, ``gridIDn``/``gridIDi`` (``grid_id_n``/``grid_id_i``)
+     - always, to select the case (``problemRegistry.f03``)
+   * - ``&cloud_nml``
+     - ``cloud_nmesh``, ``cloud_tend_tff``, ``cloud_dtout_tff``, ``cloud_truelove``, ``cloud_sgsolver``, ``cloud_sgbdry``, ``cloud_driving``, ``cloud_restart``, ``cloud_fstart``
+     - the 20 pc cloud, ``gridID`` 800 and 801 (:ref:`sec:cloud_nml`)
+   * - ``&amr_config``
+     - ``amr_bsx``, ``amr_bsy``, ``amr_max_level``, ``amr_regrid_every``, ``amr_refine_thr``, ``amr_deref_thr``
+     - every AMR case
+   * - ``&amr_config_z``
+     - ``amr_bsz``
+     - 3D AMR cases
+   * - ``&amr_tuning``
+     - ``amr_jeans_n``, ``amr_deref_hyst``, ``amr_flag_buffer``, ``amr_fac``, ``amr_fac_iters``
+     - 3D AMR cases (refinement tuning and FAC gravity)
+   * - ``&amr_restart``
+     - ``amr_fstart``
+     - AMR cases, to restart from a checkpoint
+   * - ``&amr_tend_nml``
+     - ``amr_tend``
+     - AMR cases, to override the end time
+   * - ``&amr_blob_nml``, ``&amr_refbox_nml``
+     - ``amr_blob_c``, ``amr_refbox``
+     - individual AMR gravity tests
+   * - (no group)
+     - the ``SCORPIO_*`` run options
+     - **not** namelist entries — they are environment variables, see :ref:`sec:run_options`
+
 Numerical setup
 ===============
 
@@ -584,59 +628,89 @@ Ambipolar diffusion (two-fluid)
      - ``split`` (default), ``imex``, ``imex322`` | ``athenak``, ``imexpp`` | ``imex2+`` | ``krapp``
      - Drag integration: operator-split TR-BDF2 (default); IMEX-SSP2(2,2,2); IMEX-SSP2(3,2,2) as in AthenaK; IMEX(4,3,2) of Krapp et al. (2024, CFL ≤ 0.35). An unrecognised value aborts.
 
+.. _sec:run_options:
+
 Dual energy and robustness options
 ----------------------------------
 
-These are read once, in ``setVariable``, from the environment (or
-``setRunOption``). Defaults are the production settings. What each
-method does is described in :ref:`ch:methods`.
+These are **environment variables, not namelist entries**: they cannot be
+put in ``problem.nml``. Set them in the shell for one run, or from inside a
+driver with ``setRunOption`` (which wins over the shell, so a production
+setup can be fixed in code):
+
+.. code-block:: bash
+
+   SCORPIO_PPM=1 SCORPIO_NBUF=3 mpirun -n 4 ./Scorpio        # for this run only
+
+.. code-block:: fortran
+
+   call setRunOption("SCORPIO_PPM", "1")     ! at the top of the driver, before any setup
+
+They are read once, in ``setVariable`` (and in ``amrConfigure3D`` on the AMR
+path), so a value exported afterwards has no effect. The defaults are the
+production settings; what each method does is described in
+:ref:`ch:methods`.
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 18 52
+   :widths: 26 20 12 42
 
    * - variable
+     - values
      - default
      - effect
    * - ``SCORPIO_DUAL_ENERGY``
+     - ``0`` / ``false`` = off; anything else = on
      - on
      - ``0`` disables the entropy-based pressure recovery in low-:math:`\beta` cells (pure total-energy update).
    * - ``SCORPIO_DE_THR``
+     - a real number
      - 1e-3
      - Dual energy fires when :math:`e_{\rm int} < {\rm thr}\times E`.
    * - ``SCORPIO_DE_PRINT``
+     - ``0`` / ``false`` = off
      - on
      - ``0`` silences the immediate per-step report of cells rescued from negative pressure.
    * - ``SCORPIO_PPM``
+     - ``1`` / ``true`` = on
      - off
      - ``1`` = piecewise-parabolic reconstruction (needs ``nbuf = 3``).
    * - ``SCORPIO_UPWIND_EMF``
+     - ``1`` / ``true`` = on, ``0`` / ``false`` = off
      - on
      - ``0`` = centred corner EMF instead of the Gardiner & Stone (2005) upwinded CT EMF.
    * - ``SCORPIO_LEGACY_FAILSAFE``
+     - ``1`` / ``true`` = on
      - off
      - ``1`` = whole-domain HLLD→HLL switch / global dt halving instead of the localized first-order flux correction (FOFC).
    * - ``SCORPIO_DT_HALVE``
+     - ``0`` / ``false`` = off
      - on
      - ``0`` removes the last rung of the failsafe ladder (dual energy → FOFC → dt halving → abort): after FOFC fails the run aborts immediately.
    * - ``SCORPIO_HLLD_EPS``
+     - a real number; ``0`` = legacy exact-equality tests
      - 1e-8
-     - Relative degeneracy threshold inside the HLLD star states (0 = legacy exact-equality tests).
+     - Relative degeneracy threshold inside the HLLD star states.
    * - ``SCORPIO_HLLD_STARCHECK``
+     - ``1`` / ``true`` = on (``0`` / ``false`` on the AMR path)
      - off
      - ``1`` = per-face admissibility check of the HLLD fan with HLL fallback on that face.
    * - ``SCORPIO_HEALTH``
+     - ``1`` / ``true`` = on
      - off
      - ``1`` = per-step ``[health]`` line (rescued cells, FOFC faces, HLLD fallbacks); costs one reduction per step.
    * - ``SCORPIO_DRIVING_SPECTRUM``
+     - ``expo`` | ``kolmogorov`` | ``burgers``
      - ``expo``
-     - See turbulence driving.
+     - Shape of the turbulence driving spectrum; see turbulence driving.
    * - ``SCORPIO_AD_SCHEME``
+     - ``split`` | ``imex`` | ``imex322`` | ``athenak`` | ``imexpp`` | ``imex2+`` | ``krapp``
      - ``split``
-     - See ambipolar diffusion.
+     - Ion–neutral drag integrator; an unrecognised value aborts. See ambipolar diffusion.
    * - ``SCORPIO_MG_ISOBC``
+     - ``multipole``; anything else = James
      - James
-     - See self-gravity.
+     - Isolated boundary of the multigrid gravity solver; see self-gravity.
 
 The cloud driver fixes three of these in code through ``setRunOption`` at
 its top (``OPT_DRIVING_SPECTRUM = 'burgers'``, ``OPT_DUAL_ENERGY``,
@@ -646,6 +720,8 @@ change them by accident; an empty string keeps the environment value.
 
 Case-specific namelist groups
 =============================
+
+.. _sec:cloud_nml:
 
 The 20 pc cloud (``gridID`` 800 / 801): ``&cloud_nml``
 -------------------------------------------------------
@@ -769,36 +845,211 @@ checkpoint files), ``SCORPIO_AMR_CFL`` (override the CFL number),
 ``SCORPIO_FAC_SOLVER=sor`` (pointwise SOR instead of multigrid inside FAC),
 ``SCORPIO_AMR_AUDIT=1`` (regrid audit output).
 
-Test-suite knobs
-----------------
+All ``SCORPIO_*`` variables
+---------------------------
 
-Individual test drivers read further ``SCORPIO_*`` variables so that
-parameter scans can be run without editing code. They only affect the case
-named:
+Every run option in one table. A variable that is not set keeps the default;
+an empty value counts as not set. Names starting with a case family
+(``WAVE``, ``CSK``, ``TURB``, ``ADW``, ``SPEC``, ``AMR``, ``SPHERE``) act
+only in the cases listed, and "case value" means the number the driver
+itself sets.
 
 .. list-table::
    :header-rows: 1
-   :widths: 40 60
+   :widths: 26 26 14 34
 
-   * - variable(s)
-     - case
-   * - ``SCORPIO_SG_SOLVER``, ``SCORPIO_SPHERE_RADIUS``, ``SCORPIO_SPHERE_OFFSET``
-     - self-gravity tests (357–361): solver choice, sphere geometry
-   * - ``SCORPIO_WAVE_N``, ``SCORPIO_WAVE_LIMITER``, ``SCORPIO_WAVE_RHO``, ``SCORPIO_WAVE_B0``, ``SCORPIO_WAVE_GAM``, ``SCORPIO_WAVE_P``, ``SCORPIO_WAVE_AMP``, ``SCORPIO_SOLVER``
-     - circularly polarised Alfvén wave tests (18, 58, 60): resolution, limiter, background state, amplitude, solver
-   * - ``SCORPIO_TURB_N``, ``SCORPIO_TURB_TEND``, ``SCORPIO_TURB_DTOUT``, ``SCORPIO_COUPLE_T``
-     - two-fluid driven turbulence (609/616): resolution, end time, output cadence, ion coupling time
-   * - ``SCORPIO_ADW_ALPHA``, ``SCORPIO_ADW_N``, ``SCORPIO_ADW_TEND``
-     - two-fluid Alfvén damping (620/621)
-   * - ``SCORPIO_CSK_NY``, ``SCORPIO_CSK_NZ``, ``SCORPIO_CSK_SOLVER``, ``SCORPIO_CSK_CFL``, ``SCORPIO_CSK_TEND``, ``SCORPIO_CSK_SMOOTH``, ``SCORPIO_CSK_ATHENAK``, ``SCORPIO_CSK_ATHDIR``
-     - 3D C-shock (52/53), including the AthenaK comparison hooks
-   * - ``SCORPIO_SPEC_NMESH``, ``SCORPIO_SPEC_TEND``, ``SCORPIO_SPEC_TPHASE2``
-     - spectrum-compensated driven turbulence (401)
-   * - ``SCORPIO_AMR_NMESH``, ``SCORPIO_AMR_TESTG``, ``SCORPIO_AMR_TESTBG``
-     - AMR self-gravity tests (720/721)
-   * - ``SCORPIO_NBUF``, ``SCORPIO_TEST_LIMITER``, ``SCORPIO_RAW``
-     - 3D isothermal MHD shock tube (48), field-loop reconstruction study (61), raw (no failsafe) diagnostic mode of the 3D ion blast (59)
-
+   * - variable
+     - values
+     - default
+     - applies to
+   * - ``SCORPIO_AD_SCHEME``
+     - ``split`` | ``imex`` | ``imex322`` | ``athenak`` | ``imexpp`` | ``imex2+`` | ``krapp``
+     - ``split``
+     - two-fluid drag integrator (3D drivers; 2D and typos abort)
+   * - ``SCORPIO_ADW_ALPHA``
+     - real
+     - 1e4
+     - AD Alfvén-damping test (620/621): coupling coefficient
+   * - ``SCORPIO_ADW_N``
+     - integer
+     - 64
+     - same: cells along the wave
+   * - ``SCORPIO_ADW_TEND``
+     - real
+     - :math:`3/v_A`
+     - same: end time
+   * - ``SCORPIO_AMR_AUDIT``
+     - ``1`` / ``true``
+     - off
+     - AMR: per-regrid conservation totals and flag decisions
+   * - ``SCORPIO_AMR_CFL``
+     - real
+     - the case's CFL
+     - AMR: override the Courant number (diagnostic)
+   * - ``SCORPIO_AMR_CHECKPOINT``
+     - ``0`` / ``false``
+     - on
+     - AMR: ``0`` stops writing ``c<caseID>_<fnum>.h5`` checkpoints
+   * - ``SCORPIO_AMR_NMESH``
+     - integer
+     - 32 / 64 (case)
+     - AMR gravity tests (720/721, 727): base mesh per direction
+   * - ``SCORPIO_AMR_TESTBG``
+     - real
+     - 1e-2
+     - AMR gravity blob test: background density
+   * - ``SCORPIO_AMR_TESTG``
+     - real
+     - 5e-2
+     - same: gravitational constant used by the test
+   * - ``SCORPIO_COUPLE_T``
+     - real (in crossing times)
+     - 0
+     - two-fluid turbulence (609/616): neutrals-only spin-up before the ions are coupled
+   * - ``SCORPIO_CSK_ATHDIR``
+     - ``1``
+     - off
+     - 3D C-shock (52/53): AthenaK boundary orientation (no z gradient)
+   * - ``SCORPIO_CSK_ATHENAK``
+     - ``1``
+     - off
+     - same: AthenaK comparison mode (sets its mesh and end time)
+   * - ``SCORPIO_CSK_CFL``
+     - real
+     - 0.6
+     - same: Courant number
+   * - ``SCORPIO_CSK_NY``, ``SCORPIO_CSK_NZ``
+     - integer
+     - case value
+     - same: transverse mesh
+   * - ``SCORPIO_CSK_SMOOTH``
+     - ``1``
+     - off
+     - same: start from the semi-analytic steady C-shock profile
+   * - ``SCORPIO_CSK_SOLVER``
+     - ``5`` = HLLD (otherwise HLL)
+     - 4 (HLL)
+     - same: ion Riemann solver
+   * - ``SCORPIO_CSK_TEND``
+     - real
+     - case value
+     - same: end time
+   * - ``SCORPIO_DE_PRINT``
+     - ``0`` / ``false``
+     - on
+     - the immediate ``[dual-energy]`` report
+   * - ``SCORPIO_DE_THR``
+     - real
+     - 1e-3
+     - dual-energy threshold
+   * - ``SCORPIO_DRIVING_SPECTRUM``
+     - ``expo`` | ``kolmogorov`` | ``burgers``
+     - ``expo``
+     - turbulence driving spectrum
+   * - ``SCORPIO_DT_HALVE``
+     - ``0`` / ``false``
+     - on
+     - the dt-halving rung of the failsafe ladder
+   * - ``SCORPIO_DUAL_ENERGY``
+     - ``0`` / ``false``
+     - on
+     - dual-energy pressure recovery
+   * - ``SCORPIO_FAC_SOLVER``
+     - ``sor``; anything else = multigrid
+     - multigrid
+     - AMR FAC gravity: the per-level solver
+   * - ``SCORPIO_HEALTH``
+     - ``1`` / ``true``
+     - off
+     - the per-step ``[health]`` line
+   * - ``SCORPIO_HLLD_EPS``
+     - real; ``0`` = legacy tests
+     - 1e-8
+     - HLLD degeneracy threshold
+   * - ``SCORPIO_HLLD_STARCHECK``
+     - ``1`` / ``true`` (``0`` / ``false`` on AMR)
+     - off
+     - HLLD fan admissibility check
+   * - ``SCORPIO_LEGACY_FAILSAFE``
+     - ``1`` / ``true``
+     - off
+     - the legacy global failsafe instead of FOFC
+   * - ``SCORPIO_MG_ISOBC``
+     - ``multipole``
+     - James
+     - multigrid isolated boundary
+   * - ``SCORPIO_NBUF``
+     - 2 … 4 (anything else → 2)
+     - 2
+     - ghost width of the isothermal MHD shock tubes (47/48); needed for PPM
+   * - ``SCORPIO_PPM``
+     - ``1`` / ``true``
+     - off
+     - piecewise-parabolic reconstruction
+   * - ``SCORPIO_RAW``
+     - ``0`` = production path
+     - raw (no failsafe)
+     - 3D ion blast (59): ``0`` re-enables FOFC and the step retries
+   * - ``SCORPIO_SG_SOLVER``
+     - ``mg`` / ``MG``; anything else = FFT
+     - FFT
+     - self-gravity tests: which solver the test uses
+   * - ``SCORPIO_SOLVER``
+     - ``4`` = HLL (otherwise HLLD)
+     - 5 (HLLD)
+     - low-β Alfvén wave (58): Riemann solver for the dissipation comparison
+   * - ``SCORPIO_SPEC_NMESH``
+     - integer
+     - 256
+     - spectrum-compensated turbulence (401): mesh
+   * - ``SCORPIO_SPEC_TEND``, ``SCORPIO_SPEC_TPHASE2``
+     - real
+     - 5.0, 5.5
+     - same: end time and the start of phase 2
+   * - ``SCORPIO_SPHERE_OFFSET``
+     - real
+     - 0
+     - uniform-sphere gravity test: displacement of the sphere along z
+   * - ``SCORPIO_SPHERE_RADIUS``
+     - real
+     - 0.2
+     - same: radius
+   * - ``SCORPIO_TEST_LIMITER``
+     - 0 … 3 (anything else → 2)
+     - 2 (MC)
+     - field-loop reconstruction study (61): slope limiter
+   * - ``SCORPIO_TURB_DTOUT``
+     - real > 0
+     - ``tend``/10
+     - two-fluid turbulence (609/616): output cadence
+   * - ``SCORPIO_TURB_N``
+     - integer
+     - case value (120)
+     - same: mesh per direction
+   * - ``SCORPIO_TURB_TEND``
+     - real
+     - one crossing time
+     - same: end time
+   * - ``SCORPIO_UPWIND_EMF``
+     - ``1`` / ``true``, ``0`` / ``false``
+     - on
+     - upwinded CT corner EMF
+   * - ``SCORPIO_WAVE_AMP``
+     - real
+     - 0.1
+     - low-β CP Alfvén wave (58): amplitude (use ~1e-3 for a linear-wave measurement)
+   * - ``SCORPIO_WAVE_B0``, ``SCORPIO_WAVE_RHO``, ``SCORPIO_WAVE_GAM``, ``SCORPIO_WAVE_P``
+     - real
+     - 1.0, 1.0, 5/3, 2e-4
+     - same: background field, density, adiabatic index, pressure
+   * - ``SCORPIO_WAVE_LIMITER``
+     - 0 … 3 (anything else → 2)
+     - 2 (MC)
+     - CP Alfvén convergence (60): slope limiter
+   * - ``SCORPIO_WAVE_N``
+     - integer ≥ 8 (anything else → 16)
+     - 16
+     - same: resolution of one convergence step
 
 .. _sec:all_cases:
 
