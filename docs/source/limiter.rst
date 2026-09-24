@@ -60,13 +60,13 @@ With :math:`a = W_{i-1}`, :math:`b = W_i`, :math:`c = W_{i+1}` (the code's
    * - 3
      - ``minmod``
      - the smaller-magnitude of :math:`b-a` and :math:`c-b` if they agree in sign, else 0
-     - most diffusive; cloud default
+     - most diffusive, and the safest at strong shocks
 
 The choice matters more than one might expect: on the 2D field-loop test the
 retained magnetic energy after eight crossings is 0.66 (minmod), 0.84 (van
 Leer), 0.88 (MC) — and 0.93 with PPM. ``minmod`` is the safest at strong
-shocks, which is why the cloud case uses it; for advection-dominated problems
-MC (``limiterType = 2``) is the better PLM choice.
+shocks; for advection-dominated problems MC (``limiterType = 2``) is the
+better PLM choice.
 
 ``zslop3`` and ``minmod3`` (interface ``limiter3``) are the variants for the
 cylindrical coordinates (``solverIsoMHD2D``, ``solverIso2D``): they take the

@@ -20,9 +20,9 @@ A Scorpio run is configured on three levels:
    reconstruction, dual energy, the failsafe ladder, or the ion–neutral
    coupling scheme. No recompilation.
 
-All names below are the ones in the current source; the tables list the value
-each setting takes in the 20 pc cloud driver as "cloud default" where that is
-useful.
+All names below are the ones in the current source. Values are
+problem-specific: each driver sets its own, so the tables give the meaning and
+the allowed values, not a value you should expect.
 
 
 Selecting the case: ``problem.nml``
@@ -95,9 +95,9 @@ Numerical setup
 
 These integers are set in the driver through ``setMesh`` (``coordType``),
 ``setBoundaryType``, ``setEoS``, ``setSolverType`` and ``setSlopeLimiter``.
-For a normal user the coordinate system, boundary condition and equation of
-state must be chosen; the Riemann solver and limiter can be left at the cloud
-defaults (HLLD, minmod).
+The coordinate system, boundary condition and equation of state follow from
+the problem; the Riemann solver and the limiter are a numerical choice
+(HLLD with minmod is the usual one for MHD).
 
 .. _sec:coordtype:
 
@@ -156,7 +156,7 @@ Equation of state
      - notes
    * - isothermal, :math:`P=c_s^2\rho`
      - 1
-     - ``setSoundSpeed(snd=...)``; cloud default
+     - ``setSoundSpeed(snd=...)``
    * - adiabatic, :math:`P=(\Gamma-1)e_{\rm int}`
      - 2
      - ``setAdiGamma(gam=...)``; dual energy available in 2D/3D Cartesian MHD
@@ -185,8 +185,8 @@ Riemann solver
      -
    * - HLLD (MHD)
      - 5
-     - Miyoshi & Kusano (2005); cloud default. Both isothermal and adiabatic
-       variants exist and are chosen from ``eosType``.
+     - Miyoshi & Kusano (2005). Both isothermal and adiabatic variants exist
+       and are chosen from ``eosType``.
 
 Slope limiter and reconstruction
 --------------------------------
@@ -209,7 +209,7 @@ Slope limiter and reconstruction
      -
    * - minmod
      - 3
-     - cloud default
+     - the most diffusive, and the safest at strong shocks
 
 Reconstruction is piecewise-linear (PLM) by default. Piecewise-parabolic
 reconstruction (PPM, Colella & Woodward 1984) is selected at run time with
@@ -259,11 +259,12 @@ dimensions, the mesh, the box, the end time and the sound speed (or
      - Global cells per direction. Each direction is split among the MPI ranks
        of that direction, so keep it divisible (powers of two are safest).
    * - ``leftBdry(1:ndim)``, ``rightBdry(1:ndim)``
-     - double precision, pc
-     - Box edges (cloud default −5..5, −5..5, −10..10).
+     - double precision
+     - Box edges of the global domain, in code length units (pc).
    * - ``sndspd``
      - double precision, km/s
-     - Isothermal sound speed (cloud default 0.3 ≈ 25 K).
+     - Isothermal sound speed; it sets the temperature,
+       :math:`T \simeq 282\,{\rm K}\,(\mu/2.33)(c_s/{\rm km\,s^{-1}})^2`.
    * - ``gam`` / ``adiGamma``
      - 5/3 (default)
      - Adiabatic index; unused when ``eosType = 1``.
@@ -272,14 +273,11 @@ dimensions, the mesh, the box, the end time and the sound speed (or
      - Courant number for ``griddt``. Use ≤ 0.35 with ``SCORPIO_AD_SCHEME=imexpp``.
    * - ``time_end`` (``tend``)
      - double precision, code time
-     - End of the run (cloud: ``tend_tff * tff``).
+     - End of the run. A driver may compute it from a physical time scale of its
+       problem (the cloud case scales it with a free-fall time).
    * - ``dt_out`` (``dtout``)
      - double precision, code time
-     - Snapshot interval (cloud: ``dtout_tff * tff``).
-   * - ``tff``
-     - 1.5353 (cloud)
-     - Free-fall time used only to scale ``tend`` and ``dtout`` in the cloud driver;
-       a fixed number, not recomputed from the density.
+     - Snapshot interval, set the same way.
 
 Run-time state you will see in the log (not user settings): ``t`` current
 time, ``dt`` current step (``griddt``, CFL-limited and clipped to hit the next
@@ -475,13 +473,13 @@ the injected kinetic energy equals the requested value.
      - notes
    * - ``DriveTurbulence``
      - ``.true.`` / ``.false.``
-     - Master switch in the driver (``enableDrivingTurbulence``); cloud default on; namelist ``cloud_driving``.
+     - Master switch in the driver (``enableDrivingTurbulence``); for the cloud case also ``cloud_driving`` in the namelist.
    * - ``DT_mode``
      - 0 / 1
      - 0: one kick at :math:`t=0`. 1: kick at :math:`t=0` and then every ``dt_turb`` until ``n_turb`` kicks are done.
    * - ``E_turb_tot``
      - double precision, :math:`M_\odot` km\ :sup:`2` s\ :sup:`-2`
-     - Total kinetic energy injected over all kicks (cloud default 4.5 = :math:`9.0\times10^{43}` erg).
+     - Total kinetic energy injected over all kicks, in :math:`M_\odot\,{\rm km^2\,s^{-2}}` (4.5 of them are :math:`9.0\times10^{43}` erg).
    * - ``n_turb``
      - integer
      - Number of kicks; each injects ``E_turb = E_turb_tot / n_turb`` (= ``Energy_DT``).
