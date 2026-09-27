@@ -7,7 +7,9 @@ Quickstart: your first cloud run
 This page takes you from a compiled ``Scorpio`` to a finished simulation of
 the 20 pc magnetized cloud (``gridID = 800``), its output, and the first
 changes you will want to make — without needing the MHD details. It
-assumes the build from :ref:`ch:getting_started` is done. Everything you
+assumes the build from :ref:`ch:getting_started` is done. For the driven-turbulence
+case with spectrum compensation (``gridID = 401``) see
+:ref:`ch:quickstart_spectrum`. Everything you
 touch is in two places:
 
 .. list-table::

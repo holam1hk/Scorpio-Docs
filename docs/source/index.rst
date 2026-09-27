@@ -27,6 +27,7 @@ Contents
 
    getting_started
    quickstart
+   quickstart_spectrum
    hydro
    problem_file
    methods

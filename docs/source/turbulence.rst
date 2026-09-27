@@ -122,6 +122,6 @@ Variants
 momentum/energy shift; ``calcDT3D_AD`` drives the two-fluid case (neutral
 grid, optionally both); ``apply_spectrum_to_BGV_3D`` (case 401,
 ``spectrumCompensation.f03``) re-shapes the *existing* velocity spectrum
-instead of adding a perturbation. Cases 100, 399, 400, 401 and 1688 exercise
+instead of adding a perturbation (:ref:`ch:quickstart_spectrum`). Cases 100, 399, 400, 401 and 1688 exercise
 the driving on its own; the cloud case (800) uses it as the initial
 turbulence.

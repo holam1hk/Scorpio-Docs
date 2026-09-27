@@ -105,6 +105,8 @@ Where to go next
 
 - :ref:`ch:quickstart` — run the 20 pc cloud, look at the output, change
   its settings and its physics, restart it.
+- :ref:`ch:quickstart_spectrum` — the driven-turbulence case with the
+  velocity-spectrum compensation.
 - :ref:`ch:problem_file` — every setting, namelist group and ``SCORPIO_*``
   option.
 - :ref:`ch:hydro` — equations, code units with cgs/SI conversions, the
