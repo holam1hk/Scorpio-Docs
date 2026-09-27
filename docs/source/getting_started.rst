@@ -74,10 +74,8 @@ long run that should survive logging out:
 ``nohup mpirun -n 8 ./Scorpio > run.log 2>&1 &``.
 
 .. note::
-   On WSL, when the run directory is on a Windows drive (``/mnt/c/…``),
-   ``export HDF5_USE_FILE_LOCKING=FALSE`` first, otherwise the parallel HDF5
-   writes fail. If ``problem.nml`` was edited on Windows, strip the carriage
-   returns (``sed -i -e 's/\r$//' -e '$a\' problem.nml``).
+   If ``problem.nml`` was written on Windows, strip the carriage returns
+   before running: ``sed -i -e 's/\r$//' -e '$a\' problem.nml``.
 
 Output
 ======

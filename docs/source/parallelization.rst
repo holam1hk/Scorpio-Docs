@@ -143,6 +143,6 @@ Running
    mpirun -n 8 ./Scorpio            # in the directory that holds problem.nml
    MPIRUN=srun ./validation/validate.sh   # the validation scripts honour MPIRUN
 
-Use 1, 2, 4, 8, 16, … ranks and mesh sizes that are multiples of 16; on a
-Windows/WSL mount export ``HDF5_USE_FILE_LOCKING=FALSE``. Hybrid MPI+OpenMP
-is not implemented; on nodes with many cores flat MPI is the intended mode.
+Use 1, 2, 4, 8, 16, … ranks and mesh sizes that are multiples of 16.
+Hybrid MPI+OpenMP is not implemented; on nodes with many cores flat MPI is
+the intended mode.

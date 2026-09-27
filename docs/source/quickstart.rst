@@ -63,10 +63,9 @@ a long run that should survive logging out:
 ``nohup mpirun -n 8 ../scorpio_modern/Scorpio > run.log 2>&1 &``.
 
 .. note::
-   On WSL with the run directory on a Windows drive (``/mnt/c/…``), first
-   ``export HDF5_USE_FILE_LOCKING=FALSE``. If ``problem.nml`` was edited on
-   Windows and the code reports "invalid namelist content", strip the
-   carriage returns: ``sed -i -e 's/\r$//' -e '$a\' problem.nml``.
+   If ``problem.nml`` was written on Windows and the code reports "invalid
+   namelist content", strip the carriage returns:
+   ``sed -i -e 's/\r$//' -e '$a\' problem.nml``.
 
 What the log shows
 ------------------
@@ -387,8 +386,6 @@ start with ``!``. ``git diff src/hinnyCloud.f03`` shows what you changed.
      - expected at 32×32×64; raise the resolution or set ``cloud_truelove = .false.`` for tests
    * - ``Times up!``
      - the 29-hour wall-clock limit; restart from the last snapshot
-   * - HDF5 write errors on WSL
-     - ``export HDF5_USE_FILE_LOCKING=FALSE`` on ``/mnt/…``
    * - the run got much slower after a mesh change
      - cost ∝ cells × steps and the step shrinks with the cell size: 2× resolution ≈ 16× the time
    * - ``dt`` shrinks towards zero
@@ -406,7 +403,6 @@ Cheat sheet
 
    # a run directory next to the code directory, with its own problem.nml
    cd .. && mkdir exp1 && cd exp1
-   export HDF5_USE_FILE_LOCKING=FALSE          # WSL on /mnt only
    mpirun -n 4 ../scorpio_modern/Scorpio 2>&1 | tee run.log
 
    # watch
